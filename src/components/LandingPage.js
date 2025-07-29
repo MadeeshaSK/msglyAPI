@@ -1,5 +1,7 @@
+// src/components/LandingPage.js
+
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Phone, Mail, Shield, Zap, Users, BarChart3, Headphones } from 'lucide-react'
 import AuthModal from './AuthModal'
 
@@ -7,6 +9,14 @@ export default function LandingPage({ onLogin }) {
   const [activeTab, setActiveTab] = useState('home')
   const [showAuth, setShowAuth] = useState(false)
   const [authMode, setAuthMode] = useState('login')
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tab = urlParams.get('tab')
+    if (tab && ['home', 'services', 'about', 'contact'].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [])
 
   const openAuth = (mode) => {
     setAuthMode(mode)

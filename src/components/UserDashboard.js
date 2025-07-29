@@ -11,18 +11,24 @@ import {
   sendEmail,
   sendOTP,
   verifyOTP,
-  resendOTP
+  resendOTP,
+  sendEmailOTP,
+  verifyEmailOTP,
+  resendEmailOTP
 } from '../services/userService'
 
 export default function UserDashboard({ user, onLogout }) {
+
+  // State variables
   const [showSidebar, setShowSidebar] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState('')
   const [message, setMessage] = useState('')
   const [otpCode, setOtpCode] = useState('')
   const [emailAddress, setEmailAddress] = useState('')
   const [emailSubject, setEmailSubject] = useState('')
-  const [simulatorMode, setSimulatorMode] = useState('sms') // 'sms' or 'email'
-  const [viewMode, setViewMode] = useState('analytics') // 'analytics' or 'logs'
+  const [emailOtpCode, setEmailOtpCode] = useState('')
+  const [simulatorMode, setSimulatorMode] = useState('sms') 
+  const [viewMode, setViewMode] = useState('analytics') 
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [resendTimer, setResendTimer] = useState(0)
@@ -31,6 +37,15 @@ export default function UserDashboard({ user, onLogout }) {
   const [maxResendAttempts] = useState(3)
   const [otpAttempts, setOtpAttempts] = useState(0)
   const [maxOtpAttempts] = useState(3)
+  const [emailResendTimer, setEmailResendTimer] = useState(0)
+  const [canEmailResend, setCanEmailResend] = useState(false)
+  const [emailResendAttempts, setEmailResendAttempts] = useState(0)
+  const [emailOtpAttempts, setEmailOtpAttempts] = useState(0)
+  const [showSnackbar, setShowSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarType, setSnackbarType] = useState('') 
+  const [logs, setLogs] = useState([])
+  const [refreshing, setRefreshing] = useState(false)
   
   // Individual loading states for each button
   const [loadingStates, setLoadingStates] = useState({
@@ -38,11 +53,11 @@ export default function UserDashboard({ user, onLogout }) {
     sendEmail: false,
     sendOTP: false,
     verifyOTP: false,
-    resendOTP: false
+    resendOTP: false,
+    sendEmailOTP: false,
+    verifyEmailOTP: false,
+    resendEmailOTP: false
   })
-
-  // Define the API base URL
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
   // User data from backend
   const [userStats, setUserStats] = useState({
@@ -64,9 +79,6 @@ export default function UserDashboard({ user, onLogout }) {
     }
   })
 
-  const [logs, setLogs] = useState([])
-  const [refreshing, setRefreshing] = useState(false)
-
   // Helper function to set individual loading states
   const setLoading = (action, isLoading) => {
     setLoadingStates(prev => ({
@@ -83,18 +95,32 @@ export default function UserDashboard({ user, onLogout }) {
       
       if (result.success) {
         const dashboardData = result.data
+        console.log('🔍 Dashboard data received:', dashboardData)
+        
+        // Use the correct data structure from your API response
+        const userUsageStats = dashboardData.user.usageStats || {}
+        const summary = dashboardData.summary || {}
+        
         setUserStats({
           apiKey: dashboardData.user.apiKey,
           requestQuota: dashboardData.user.amount || 0,
-          usedQuota: dashboardData.summary.quotaUsed || 0,
-          remainingQuota: dashboardData.summary.quotaRemaining || 0,
-          validity: new Date(dashboardData.user.validity).toLocaleDateString(),
+          usedQuota: summary.quotaUsed || userUsageStats.totalRequests || 0,
+          remainingQuota: summary.quotaRemaining || dashboardData.user.amount || 0,
+          validity: dashboardData.user.validity ? new Date(dashboardData.user.validity).toLocaleDateString() : 'N/A',
           role: dashboardData.user.role,
-          successfulRequests: dashboardData.summary.successfulRequests || 0,
-          failedRequests: dashboardData.summary.failedRequests || 0,
-          totalRequests: dashboardData.summary.totalRequests || 0,
-          todayUsage: dashboardData.todayUsage
+          // Fixed mapping from your API response
+          successfulRequests: summary.quotaUsed || userUsageStats.successfulRequests || 0,
+          failedRequests: summary.failedRequests || userUsageStats.failedRequests || 0,
+          totalRequests: summary.totalRequests || userUsageStats.totalRequests || 0,
+          todayUsage: {
+            sms: dashboardData.todayUsage?.sms || 0,
+            otp: dashboardData.todayUsage?.otp || 0,
+            email: dashboardData.todayUsage?.email || 0,
+            total: dashboardData.todayUsage?.total || 0,
+            successRate: dashboardData.todayUsage?.successRate || 0
+          }
         })
+        
         setError('')
       }
     } catch (error) {
@@ -111,20 +137,31 @@ export default function UserDashboard({ user, onLogout }) {
       console.log('📝 Fetching request logs...')
       
       const result = await getUserLogs(user.apiKey, { page: 1, limit: 50 })
+      console.log('📝 Logs result received:', result)
       
       if (result.success) {
-        // Transform the logs data to match our frontend format
-        const formattedLogs = result.data.map(log => ({
-          id: log.id,
-          timestamp: new Date(log.timestamp),
-          type: log.type,
-          target: log.target,
-          status: log.status,
-          message: log.message
-        }))
-        
-        setLogs(formattedLogs)
-        console.log(`📝 Loaded ${formattedLogs.length} log entries`)
+        if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+          // Transform the logs data to match our frontend format
+          const formattedLogs = result.data.map((log, index) => {
+            return {
+              id: log.id || `log_${Date.now()}_${index}`,
+              timestamp: log.timestamp ? new Date(log.timestamp) : new Date(),
+              type: log.type || 'UNKNOWN',
+              target: log.target || 'N/A',
+              status: log.status || 'Unknown',
+              message: log.message || ''
+            }
+          })
+          
+          setLogs(formattedLogs)
+          console.log(`📝 Successfully loaded ${formattedLogs.length} log entries`)
+        } else {
+          console.log('📝 No logs found - empty array or no data')
+          setLogs([])
+        }
+      } else {
+        console.log('📝 Logs request unsuccessful')
+        setLogs([])
       }
     } catch (error) {
       console.error('❌ Error fetching logs:', error)
@@ -140,12 +177,37 @@ export default function UserDashboard({ user, onLogout }) {
 
   useEffect(() => {
     if (successMessage) {
+      setSnackbarMessage(successMessage)
+      setSnackbarType('success')
+      setShowSnackbar(true)
+      
       const timer = setTimeout(() => {
-        setSuccessMessage('')
-      }, 5000) // Clear after 5 seconds
+        setShowSnackbar(false)
+        setTimeout(() => {
+          setSuccessMessage('')
+          setSnackbarMessage('')
+        }, 300) // Wait for animation to complete
+      }, 5000)
       return () => clearTimeout(timer)
     }
   }, [successMessage])
+  
+  useEffect(() => {
+    if (error) {
+      setSnackbarMessage(error)
+      setSnackbarType('error')
+      setShowSnackbar(true)
+      
+      const timer = setTimeout(() => {
+        setShowSnackbar(false)
+        setTimeout(() => {
+          setError('')
+          setSnackbarMessage('')
+        }, 300) // Wait for animation to complete
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [error])
 
   useEffect(() => {
     let interval = null
@@ -164,12 +226,36 @@ export default function UserDashboard({ user, onLogout }) {
       if (interval) clearInterval(interval)
     }
   }, [resendTimer])
+
+  useEffect(() => {
+    let interval = null
+    if (emailResendTimer > 0) {
+      interval = setInterval(() => {
+        setEmailResendTimer(timer => {
+          if (timer <= 1) {
+            setCanEmailResend(true)
+            return 0
+          }
+          return timer - 1
+        })
+      }, 1000)
+    }
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [emailResendTimer])
   
   const startResendTimer = () => {
     setResendTimer(60) // 60 seconds
     setCanResend(false)
   }
 
+  const startEmailResendTimer = () => {
+    setEmailResendTimer(60) // 60 seconds
+    setCanEmailResend(false)
+  }
+
+  // Handlers for sending messages, OTPs, and emails
   const sendDirectMessageHandler = async () => {
     if (!phoneNumber || !message) {
       setError('Please enter both phone number and message')
@@ -316,24 +402,122 @@ export default function UserDashboard({ user, onLogout }) {
       
       if (result.success) {
         setOtpAttempts(0)
-        setResendAttempts(prev => {
-          const newAttempts = prev + 1
-          return newAttempts
-        })
+        setResendAttempts(prev => prev + 1)
         setOtpCode('')
         startResendTimer()
-        setSuccessMessage('OTP resent successfully!')
+        setSuccessMessage(result.message)
         setError('')
         fetchUserData()
         fetchLogs()
-      } else {
-        setError(`Failed to resend OTP: ${result.error}`)
       }
     } catch (error) {
       console.error('❌ Resend OTP error:', error)
       setError(error.message)
     } finally {
       setLoading('resendOTP', false)
+    }
+  }
+
+  const sendEmailOTPHandler = async () => {
+    if (!emailAddress) {
+      setError('Please enter email address')
+      return
+    }
+  
+    setLoading('sendEmailOTP', true)
+    setError('')
+    setSuccessMessage('')
+    
+    try {
+      const result = await sendEmailOTP(user.apiKey, emailAddress)
+      
+      if (result.success) {
+        setEmailOtpCode('')
+        setSuccessMessage(result.message)
+        setError('')
+        setEmailOtpAttempts(0)
+        setEmailResendAttempts(1)
+        startEmailResendTimer()
+        fetchUserData()
+        fetchLogs()
+      }
+    } catch (error) {
+      console.error('❌ Send email OTP error:', error)
+      setError(error.message)
+    } finally {
+      setLoading('sendEmailOTP', false)
+    }
+  }
+
+  const verifyEmailOTPHandler = async () => {
+    if (!emailAddress || !emailOtpCode) {
+      setError('Please enter both email address and OTP code')
+      return
+    }
+  
+    if (emailOtpAttempts >= maxOtpAttempts) {
+      setError(`Maximum ${maxOtpAttempts} verification attempts reached. Please request a new email OTP.`)
+      return
+    }
+  
+    setLoading('verifyEmailOTP', true)
+    setError('')
+    setSuccessMessage('')
+    
+    try {
+      const result = await verifyEmailOTP(user.apiKey, emailAddress, emailOtpCode)
+      
+      if (result.success) {
+        setEmailOtpCode('')
+        setSuccessMessage(result.message)
+        setError('')
+        setEmailOtpAttempts(0)
+        fetchLogs()
+      }
+    } catch (error) {
+      const newAttempts = emailOtpAttempts + 1
+      setEmailOtpAttempts(newAttempts)
+      
+      if (newAttempts >= maxOtpAttempts) {
+        setError(`Invalid email OTP. Maximum attempts (${maxOtpAttempts}) reached. Please request a new OTP.`)
+      } else {
+        setError(`Invalid email OTP. ${maxOtpAttempts - newAttempts} attempts remaining.`)
+      }
+    } finally {
+      setLoading('verifyEmailOTP', false)
+    }
+  }
+
+  const resendEmailOTPHandler = async () => {
+    if (!canEmailResend || loadingStates.resendEmailOTP) return
+    
+    if (emailResendAttempts >= maxResendAttempts) {
+      setError(`Maximum ${maxResendAttempts} email resend attempts reached. Please try again later.`)
+      return
+    }
+  
+    setLoading('resendEmailOTP', true)
+    setError('')
+    setSuccessMessage('')
+    
+    try {
+      const result = await resendEmailOTP(user.apiKey, emailAddress)
+      
+      if (result.success) {
+        setEmailOtpAttempts(0)
+        setEmailResendAttempts(prev => prev + 1)
+        setEmailOtpCode('')
+        startEmailResendTimer()
+        setSuccessMessage(result.message)
+        setError('')
+        fetchUserData()
+        fetchLogs()
+      }
+    } catch (error) {
+      console.error('❌ Resend email OTP error:', error)
+      setError(error.message)
+    } finally {
+      setLoading('resendEmailOTP', false)
     }
   }
 
@@ -351,6 +535,7 @@ export default function UserDashboard({ user, onLogout }) {
   const accountPlan = userStats.requestQuota > 100 ? 'Paid Plan' : 'Free Plan'
   const planColor = userStats.requestQuota > 100 ? 'text-purple-400' : 'text-blue-400'
 
+  // Render the user dashboard
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
       {/* Header */}
@@ -382,19 +567,6 @@ export default function UserDashboard({ user, onLogout }) {
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 mb-6">
-            <p className="text-red-200 text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {successMessage && (
-          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 mb-6">
-            <p className="text-green-200 text-sm">✅ {successMessage}</p>
-          </div>
-        )}
 
         {/* Stats Cards */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -474,11 +646,10 @@ export default function UserDashboard({ user, onLogout }) {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Message Simulator */}
           <div className="glass p-6 rounded-xl">
-            <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-              {simulatorMode === 'sms' ? <Phone className="w-6 h-6 mr-2" /> : <Mail className="w-6 h-6 mr-2" />}
-              {simulatorMode === 'sms' ? 'SMS Simulator' : 'Email Simulator'}
-            </h3>
-            
+          <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+            {simulatorMode === 'sms' ? <Phone className="w-6 h-6 mr-2" /> : <Mail className="w-6 h-6 mr-2" />}
+            {simulatorMode === 'sms' ? 'SMS Simulator' : 'Email Simulator'}
+          </h3>
             <div className="space-y-4">
               {simulatorMode === 'sms' ? (
                 <>
@@ -609,6 +780,69 @@ export default function UserDashboard({ user, onLogout }) {
                     <Mail className="w-5 h-5" />
                     <span>{loadingStates.sendEmail ? 'Sending...' : 'Send Email'}</span>
                   </button>
+
+                  <div className="border-t border-white/20 pt-4">
+                    <h4 className="text-white font-medium mb-3">Email OTP Operations</h4>
+                    
+                    <div className="flex space-x-2 mb-3">
+                      <button
+                        onClick={sendEmailOTPHandler}
+                        disabled={loadingStates.sendEmailOTP || emailResendAttempts > 0}
+                        className="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                      >
+                        <Shield className="w-5 h-5" />
+                        <span>{loadingStates.sendEmailOTP ? 'Sending...' : 'Send Email OTP'}</span>
+                      </button>
+                      
+                      <button
+                        onClick={resendEmailOTPHandler}
+                        disabled={!canEmailResend || loadingStates.resendEmailOTP || emailResendAttempts >= maxResendAttempts}
+                        className="flex-1 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                      >
+                        <RotateCcw className="w-5 h-5" />
+                        <span>
+                          {loadingStates.resendEmailOTP ? 'Resending...' : 
+                          emailResendAttempts >= maxResendAttempts ? 'Max Reached' :
+                          emailResendTimer > 0 ? `Resend (${emailResendTimer}s)` : 'Resend'}
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Email attempts counter */}
+                    <div className="flex justify-between text-xs text-white/60 mb-3">
+                      <span>Email Verification: {emailOtpAttempts}/{maxOtpAttempts}</span>
+                      <span>Email Resend: {emailResendAttempts}/{maxResendAttempts}</span>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        placeholder="Enter email OTP code"
+                        value={emailOtpCode}
+                        onChange={(e) => setEmailOtpCode(e.target.value)}
+                        maxLength={6}
+                        disabled={Object.values(loadingStates).some(loading => loading) || emailOtpAttempts >= maxOtpAttempts}
+                        className="flex-1 p-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none disabled:opacity-50"
+                      />
+                      <button
+                        onClick={verifyEmailOTPHandler}
+                        disabled={loadingStates.verifyEmailOTP || emailOtpAttempts >= maxOtpAttempts || 
+                          emailResendAttempts === 0 }
+                        className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                      >
+                        {loadingStates.verifyEmailOTP ? 'Verifying...' : 'Verify'}
+                      </button>
+                    </div>
+
+                    {/* Max attempts warning for email OTP */}
+                    {emailOtpAttempts >= maxOtpAttempts && (
+                      <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mt-3">
+                        <p className="text-yellow-200 text-sm text-center">
+                          Maximum email verification attempts reached. Please request a new email OTP.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>
@@ -769,28 +1003,28 @@ export default function UserDashboard({ user, onLogout }) {
             </div>
           </div>
 
-          {/* API Documentation */}
+          {/* Links */}
           <div className="glass p-6 rounded-xl">
             <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
             <div className="space-y-2">
-              <button 
-                onClick={() => setError('API Documentation coming soon!')}
-                className="w-full text-left p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
+              <a 
+                href="https://github.com/MadeeshaSK/msgsend?tab=readme-ov-file#-enhanced-otp-sms-system"
+                className="block w-full text-left p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
               >
                 📖 API Documentation
-              </button>
+              </a>
               <button 
-                onClick={() => setError('SDK Downloads coming soon!')}
+                onClick={() => setError('Bulk Messaging coming soon!')}
                 className="w-full text-left p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
               >
-                🔧 SDK Downloads
+                🔧 Bulk Messaging
               </button>
-              <button 
-                onClick={() => setError('Support Center coming soon!')}
-                className="w-full text-left p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
+              <a 
+                href="/?tab=contact"
+                className="block w-full text-left p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
               >
                 💬 Support Center
-              </button>
+              </a>
             </div>
           </div>
 
@@ -800,7 +1034,7 @@ export default function UserDashboard({ user, onLogout }) {
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-white">Service Active</span>
+                <span className="text-white">Service {userStats.remainingQuota > 0 ? 'Active' : 'Inactive'}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className={`w-3 h-3 rounded-full ${userStats.requestQuota > 100 ? 'bg-purple-400' : 'bg-blue-400'}`}></div>
@@ -808,12 +1042,31 @@ export default function UserDashboard({ user, onLogout }) {
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                <span className="text-white">Auto-renewal {userStats.requestQuota > 100 ? 'On' : 'Off'}</span>
+                <span className="text-white">Usage {userStats.todayUsage.total > 100 ? 'High' : 'Low'}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Snackbar */}
+      {snackbarMessage && (
+        <div className={`fixed bottom-6 left-6 z-50 transition-all duration-300 ease-in-out transform ${
+          showSnackbar ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+        }`}>
+          <div className={`glass rounded-lg p-4 max-w-md shadow-xl border ${
+            snackbarType === 'success' 
+              ? 'border-green-500/50 bg-green-500/20' 
+              : 'border-red-500/50 bg-red-500/20'
+          }`}>
+            <p className={`text-base ${
+              snackbarType === 'success' ? 'text-green-200' : 'text-red-200'
+            }`}>
+              {snackbarType === 'success' ? '✅ ' : '❌ '}{snackbarMessage}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Sidebar */}
       {showSidebar && (
