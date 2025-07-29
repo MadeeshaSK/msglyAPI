@@ -531,6 +531,11 @@ export default function UserDashboard({ user, onLogout }) {
     fetchLogs()
   }
 
+  const handleProfileUpdate = (updatedProfile) => {
+    console.log('Profile updated:', updatedProfile)
+    fetchUserData()
+  }
+
   // Determine account plan
   const accountPlan = userStats.requestQuota > 100 ? 'Paid Plan' : 'Free Plan'
   const planColor = userStats.requestQuota > 100 ? 'text-purple-400' : 'text-blue-400'
@@ -1074,6 +1079,7 @@ export default function UserDashboard({ user, onLogout }) {
           user={user}
           onClose={() => setShowSidebar(false)}
           onLogout={onLogout}
+          onProfileUpdate={handleProfileUpdate}
         />
       )}
     </div>
