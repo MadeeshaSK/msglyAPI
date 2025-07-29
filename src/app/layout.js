@@ -1,3 +1,5 @@
+// src/app/layout.js
+
 import Script from 'next/script'
 import './globals.css'
 
@@ -8,8 +10,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.png" type="image/png" />
+      </head>
+      <body suppressHydrationWarning={true}>
         {children}
         
         {/* Tawk.to Live Chat Widget */}

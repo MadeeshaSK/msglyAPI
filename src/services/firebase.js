@@ -1,6 +1,8 @@
+// src/services/firebase.js
+
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
-import { getAnalytics } from 'firebase/analytics'
+import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,19 +16,17 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app)
-export const googleProvider = new GoogleAuthProvider()
+// Initialize Firebase services
+const auth = getAuth(app)
+const db = getFirestore(app)
 
-export const initAnalytics = () => {
-  if (typeof window !== 'undefined') {
-    // Dynamically import to avoid server-side issues
-    import('firebase/analytics').then(({ getAnalytics }) => {
-      getAnalytics(app)
-    }).catch(err => {
-      console.warn('Analytics failed to load:', err)
-    })
-  }
-}
+// Configure Google Provider
+const googleProvider = new GoogleAuthProvider()
+googleProvider.addScope('email')
+googleProvider.addScope('profile')
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+})
 
+export { auth, db, googleProvider }
 export default app

@@ -1,9 +1,11 @@
+// src/app/page.js
+
 'use client'
 import { useState } from 'react'
-import LandingPage from '@/components/LandingPage'
-import UserDashboard from '@/components/UserDashboard'
-import AdminDashboard from '@/components/AdminDashboard'
-import { logout } from '@/lib/authService'
+import LandingPage from '../components/LandingPage'
+import UserDashboard from '../components/UserDashboard'
+import AdminDashboard from '../components/AdminDashboard'
+import { logout } from '../services/authService'
 
 export default function Home() {
   const [currentView, setCurrentView] = useState('landing')

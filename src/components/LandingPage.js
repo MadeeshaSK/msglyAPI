@@ -19,8 +19,15 @@ export default function LandingPage({ onLogin }) {
       {/* Header */}
       <header className="glass fixed w-full top-0 z-50">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-white">
-            msgly<span className="text-blue-400">API</span>
+          <div className="text-2xl font-bold text-white flex items-center space-x-2">
+            <span>
+              msgly<span className="text-blue-400">API</span>
+            </span>
+            <img
+              src="/favicon.png" 
+              alt="Logo"
+              className="w-10 h-10" 
+            />
           </div>
           
           <nav className="hidden md:flex space-x-8">
