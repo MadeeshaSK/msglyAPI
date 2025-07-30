@@ -234,7 +234,6 @@ export default function AuthModal({ mode, onClose, onLogin, onSwitchMode }) {
       }
       
     } catch (error) {
-      console.error('Authentication error:', error)
       setError(error.message)
     } finally {
       setLoading(false)
@@ -261,13 +260,12 @@ export default function AuthModal({ mode, onClose, onLogin, onSwitchMode }) {
         await resendEmailOTP(formData.email)
       }
       
-      setAttempts(0) // Reset verification attempts on resend
-      setResendAttempts(prev => prev + 1) // Increment resend attempts
-      setFormData(prev => ({ ...prev, otp: '' })) // Clear OTP field
+      setAttempts(0) 
+      setResendAttempts(prev => prev + 1) 
+      setFormData(prev => ({ ...prev, otp: '' })) 
       startResendTimer()
-      setError('') // Clear any previous errors
+      setError('') 
     } catch (error) {
-      console.error('Resend OTP error:', error)
       setError(error.message)
     } finally {
       setResendLoading(false)
@@ -280,19 +278,13 @@ export default function AuthModal({ mode, onClose, onLogin, onSwitchMode }) {
     setError('')
   
     try {
-      console.log('🔍 AuthModal: Starting Google authentication...')
-      console.log('🔍 Current mode:', mode)
       
       let result
       if (mode === 'login') {
-        console.log('🔍 Calling signInWithGoogle...')
         result = await signInWithGoogle()
       } else {
-        console.log('🔍 Calling signUpWithGoogle...')
         result = await signUpWithGoogle()
       }
-      
-      console.log('✅ Authentication result received:', result)
       
       // Validate required data
       if (!result.firebaseUser || !result.userData) {
@@ -312,8 +304,6 @@ export default function AuthModal({ mode, onClose, onLogin, onSwitchMode }) {
         validity: result.userData.validity || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       }
       
-      console.log('🔍 Final userData for onLogin:', userData)
-      
       // Validate essential fields
       if (!userData.id || !userData.email) {
         throw new Error('Invalid user data: missing required fields')
@@ -323,7 +313,6 @@ export default function AuthModal({ mode, onClose, onLogin, onSwitchMode }) {
       onClose()
       
     } catch (error) {
-      console.error('❌ AuthModal Google auth error:', error)
       
       let errorMessage = 'Authentication failed. Please try again.'
       
@@ -342,8 +331,7 @@ export default function AuthModal({ mode, onClose, onLogin, onSwitchMode }) {
           errorMessage = error.message
         }
       }
-      
-      console.error('❌ Final error message:', errorMessage)
+
       setError(errorMessage)
     } finally {
       setLoading(false)

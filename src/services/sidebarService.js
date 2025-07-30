@@ -5,7 +5,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 // Get User Profile for Sidebar
 export const getSidebarProfile = async (apiKey) => {
   try {
-    console.log('🔍 Getting sidebar profile...')
     
     const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'GET',
@@ -16,7 +15,6 @@ export const getSidebarProfile = async (apiKey) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Sidebar profile response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to fetch profile')
@@ -27,7 +25,6 @@ export const getSidebarProfile = async (apiKey) => {
       data: data.data
     }
   } catch (error) {
-    console.error('❌ Get sidebar profile error:', error)
     throw new Error(error.message)
   }
 }
@@ -35,7 +32,6 @@ export const getSidebarProfile = async (apiKey) => {
 // Update User Profile from Sidebar
 export const updateSidebarProfile = async (apiKey, updates) => {
   try {
-    console.log('🔍 Updating sidebar profile...', updates)
     
     const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'PUT',
@@ -47,7 +43,6 @@ export const updateSidebarProfile = async (apiKey, updates) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Update sidebar profile response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to update profile')
@@ -59,7 +54,6 @@ export const updateSidebarProfile = async (apiKey, updates) => {
       message: data.message
     }
   } catch (error) {
-    console.error('❌ Update sidebar profile error:', error)
     throw new Error(error.message)
   }
 }
@@ -67,7 +61,6 @@ export const updateSidebarProfile = async (apiKey, updates) => {
 // Check if email exists in system
 export const checkEmailExists = async (apiKey, email) => {
   try {
-    console.log('🔍 Checking if email exists...', { email })
     
     const response = await fetch(`${API_BASE_URL}/user/check-email`, {
       method: 'POST',
@@ -79,7 +72,6 @@ export const checkEmailExists = async (apiKey, email) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Check email response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to check email')
@@ -90,7 +82,6 @@ export const checkEmailExists = async (apiKey, email) => {
       exists: data.exists || false
     }
   } catch (error) {
-    console.error('❌ Check email error:', error)
     throw new Error(error.message)
   }
 }
@@ -98,7 +89,6 @@ export const checkEmailExists = async (apiKey, email) => {
 // Check if phone exists in system
 export const checkPhoneExists = async (apiKey, phone) => {
   try {
-    console.log('🔍 Checking if phone exists...', { phone })
     
     const response = await fetch(`${API_BASE_URL}/user/check-phone`, {
       method: 'POST',
@@ -110,7 +100,6 @@ export const checkPhoneExists = async (apiKey, phone) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Check phone response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to check phone')
@@ -121,7 +110,6 @@ export const checkPhoneExists = async (apiKey, phone) => {
       exists: data.exists || false
     }
   } catch (error) {
-    console.error('❌ Check phone error:', error)
     throw new Error(error.message)
   }
 }
@@ -129,7 +117,6 @@ export const checkPhoneExists = async (apiKey, phone) => {
 // Send Email Verification Code
 export const sendEmailVerification = async (apiKey, email) => {
   try {
-    console.log('🔍 Sending email verification...', { email })
     
     const response = await fetch(`${API_BASE_URL}/api/send-email-otp`, {
       method: 'POST',
@@ -141,7 +128,6 @@ export const sendEmailVerification = async (apiKey, email) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Email verification response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to send email verification')
@@ -152,7 +138,6 @@ export const sendEmailVerification = async (apiKey, email) => {
       message: data.message || 'Email verification sent successfully'
     }
   } catch (error) {
-    console.error('❌ Send email verification error:', error)
     throw new Error(error.message)
   }
 }
@@ -160,7 +145,6 @@ export const sendEmailVerification = async (apiKey, email) => {
 // Send Phone Verification Code
 export const sendPhoneVerification = async (apiKey, phone) => {
   try {
-    console.log('🔍 Sending phone verification...', { phone })
     
     const response = await fetch(`${API_BASE_URL}/api/send-otp`, {
       method: 'POST',
@@ -172,7 +156,6 @@ export const sendPhoneVerification = async (apiKey, phone) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Phone verification response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to send phone verification')
@@ -183,7 +166,6 @@ export const sendPhoneVerification = async (apiKey, phone) => {
       message: data.message || 'Phone verification sent successfully'
     }
   } catch (error) {
-    console.error('❌ Send phone verification error:', error)
     throw new Error(error.message)
   }
 }
@@ -191,7 +173,6 @@ export const sendPhoneVerification = async (apiKey, phone) => {
 // Verify Email Code
 export const verifyEmailCode = async (apiKey, email, code) => {
   try {
-    console.log('🔍 Verifying email code...', { email, code })
     
     const response = await fetch(`${API_BASE_URL}/api/verify-email-otp`, {
       method: 'POST',
@@ -203,7 +184,6 @@ export const verifyEmailCode = async (apiKey, email, code) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Email verification response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to verify email code')
@@ -214,7 +194,6 @@ export const verifyEmailCode = async (apiKey, email, code) => {
       message: data.message || 'Email verified successfully'
     }
   } catch (error) {
-    console.error('❌ Verify email code error:', error)
     throw new Error(error.message)
   }
 }
@@ -222,7 +201,6 @@ export const verifyEmailCode = async (apiKey, email, code) => {
 // Verify Phone Code
 export const verifyPhoneCode = async (apiKey, phone, code) => {
   try {
-    console.log('🔍 Verifying phone code...', { phone, code })
     
     const response = await fetch(`${API_BASE_URL}/api/verify-otp`, {
       method: 'POST',
@@ -234,7 +212,6 @@ export const verifyPhoneCode = async (apiKey, phone, code) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Phone verification response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to verify phone code')
@@ -245,7 +222,6 @@ export const verifyPhoneCode = async (apiKey, phone, code) => {
       message: data.message || 'Phone verified successfully'
     }
   } catch (error) {
-    console.error('❌ Verify phone code error:', error)
     throw new Error(error.message)
   }
 }
@@ -253,7 +229,6 @@ export const verifyPhoneCode = async (apiKey, phone, code) => {
 // Upload Profile Picture
 export const uploadProfilePicture = async (apiKey, imageFile) => {
     try {
-      console.log('🔍 Uploading profile picture...')
       
       const formData = new FormData()
       formData.append('profilePicture', imageFile)
@@ -267,7 +242,6 @@ export const uploadProfilePicture = async (apiKey, imageFile) => {
       })
       
       const data = await response.json()
-      console.log('🔍 Upload profile picture response:', data)
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to upload profile picture')
@@ -279,7 +253,6 @@ export const uploadProfilePicture = async (apiKey, imageFile) => {
         message: data.message
       }
     } catch (error) {
-      console.error('❌ Upload profile picture error:', error)
       throw new Error(error.message)
     }
 }
@@ -287,7 +260,6 @@ export const uploadProfilePicture = async (apiKey, imageFile) => {
   // Remove Profile Picture
   export const removeProfilePicture = async (apiKey) => {
     try {
-      console.log('🔍 Removing profile picture...')
       
       const response = await fetch(`${API_BASE_URL}/user/profile/picture`, {
         method: 'DELETE',
@@ -298,7 +270,6 @@ export const uploadProfilePicture = async (apiKey, imageFile) => {
       })
       
       const data = await response.json()
-      console.log('🔍 Remove profile picture response:', data)
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to remove profile picture')
@@ -310,7 +281,6 @@ export const uploadProfilePicture = async (apiKey, imageFile) => {
         message: data.message
       }
     } catch (error) {
-      console.error('❌ Remove profile picture error:', error)
       throw new Error(error.message)
     }
 }
@@ -318,7 +288,6 @@ export const uploadProfilePicture = async (apiKey, imageFile) => {
 // Delete User Account
 export const deleteUserAccount = async (apiKey, userId) => {
     try {
-      console.log('🔍 Deleting user account...', { userId })
       
       const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
         method: 'DELETE',
@@ -329,7 +298,6 @@ export const deleteUserAccount = async (apiKey, userId) => {
       })
       
       const data = await response.json()
-      console.log('🔍 Delete account response:', data)
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to delete account')
@@ -340,7 +308,6 @@ export const deleteUserAccount = async (apiKey, userId) => {
         message: data.message || 'Account deleted successfully'
       }
     } catch (error) {
-      console.error('❌ Delete account error:', error)
       throw new Error(error.message)
     }
   }

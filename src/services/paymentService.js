@@ -66,7 +66,6 @@ const getUserIdFromApiKey = async (apiKey) => {
     }
     throw new Error('Failed to get user ID');
   } catch (error) {
-    console.error('Error getting user ID:', error);
     throw error;
   }
 }
@@ -99,7 +98,6 @@ export const createCoinbasePayment = async (apiKey, orderData) => {
       data: data.data
     }
   } catch (error) {
-    console.error('Create Coinbase payment error:', error)
     throw new Error(error.message)
   }
 }
@@ -132,7 +130,6 @@ export const createBankTransferOrder = async (apiKey, orderData) => {
       data: data.data
     }
   } catch (error) {
-    console.error('Create bank transfer order error:', error)
     throw new Error(error.message)
   }
 }
@@ -162,7 +159,6 @@ export const getPaymentStatus = async (apiKey, orderId) => {
       data: data.data
     }
   } catch (error) {
-    console.error('Get payment status error:', error)
     throw new Error(error.message)
   }
 }
@@ -198,7 +194,6 @@ export const getPaymentHistory = async (apiKey, options = {}) => {
       pagination: data.pagination
     }
   } catch (error) {
-    console.error('Get payment history error:', error)
     throw new Error(error.message)
   }
 }

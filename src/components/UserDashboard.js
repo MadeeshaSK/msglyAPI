@@ -48,6 +48,7 @@ export default function UserDashboard({ user, onLogout }) {
   const [logs, setLogs] = useState([])
   const [refreshing, setRefreshing] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [currentProfilePicture, setCurrentProfilePicture] = useState(null)
   
   // Individual loading states for each button
   const [loadingStates, setLoadingStates] = useState({
@@ -97,7 +98,6 @@ export default function UserDashboard({ user, onLogout }) {
       
       if (result.success) {
         const dashboardData = result.data
-        console.log('🔍 Dashboard data received:', dashboardData)
         
         // Use the correct data structure from your API response
         const userUsageStats = dashboardData.user.usageStats || {}
@@ -110,7 +110,6 @@ export default function UserDashboard({ user, onLogout }) {
           remainingQuota: summary.quotaRemaining || dashboardData.user.amount || 0,
           validity: dashboardData.user.validity ? new Date(dashboardData.user.validity).toLocaleDateString() : 'N/A',
           role: dashboardData.user.role,
-          // Fixed mapping from your API response
           successfulRequests: summary.quotaUsed || userUsageStats.successfulRequests || 0,
           failedRequests: summary.failedRequests || userUsageStats.failedRequests || 0,
           totalRequests: summary.totalRequests || userUsageStats.totalRequests || 0,
@@ -123,10 +122,10 @@ export default function UserDashboard({ user, onLogout }) {
           }
         })
         
+        setCurrentProfilePicture(dashboardData.user.profilePicture || null)
         setError('')
       }
     } catch (error) {
-      console.error('❌ Error fetching user data:', error)
       setError(`Dashboard error: ${error.message}`)
     } finally {
       setRefreshing(false)
@@ -136,10 +135,8 @@ export default function UserDashboard({ user, onLogout }) {
   // Fetch request logs using userService
   const fetchLogs = async () => {
     try {
-      console.log('📝 Fetching request logs...')
       
       const result = await getUserLogs(user.apiKey, { page: 1, limit: 50 })
-      console.log('📝 Logs result received:', result)
       
       if (result.success) {
         if (result.data && Array.isArray(result.data) && result.data.length > 0) {
@@ -156,17 +153,13 @@ export default function UserDashboard({ user, onLogout }) {
           })
           
           setLogs(formattedLogs)
-          console.log(`📝 Successfully loaded ${formattedLogs.length} log entries`)
         } else {
-          console.log('📝 No logs found - empty array or no data')
           setLogs([])
         }
       } else {
-        console.log('📝 Logs request unsuccessful')
         setLogs([])
       }
     } catch (error) {
-      console.error('❌ Error fetching logs:', error)
       setLogs([])
     }
   }
@@ -280,7 +273,6 @@ export default function UserDashboard({ user, onLogout }) {
         fetchLogs()
       }
     } catch (error) {
-      console.error('❌ Send message error:', error)
       setError(error.message)
     } finally {
       setLoading('sendMessage', false)
@@ -310,7 +302,6 @@ export default function UserDashboard({ user, onLogout }) {
         fetchLogs()
       }
     } catch (error) {
-      console.error('❌ Send email error:', error)
       setError(error.message)
     } finally {
       setLoading('sendEmail', false)
@@ -341,7 +332,6 @@ export default function UserDashboard({ user, onLogout }) {
         fetchLogs()
       }
     } catch (error) {
-      console.error('❌ Send OTP error:', error)
       setError(error.message)
     } finally {
       setLoading('sendOTP', false)
@@ -413,7 +403,6 @@ export default function UserDashboard({ user, onLogout }) {
         fetchLogs()
       }
     } catch (error) {
-      console.error('❌ Resend OTP error:', error)
       setError(error.message)
     } finally {
       setLoading('resendOTP', false)
@@ -444,7 +433,6 @@ export default function UserDashboard({ user, onLogout }) {
         fetchLogs()
       }
     } catch (error) {
-      console.error('❌ Send email OTP error:', error)
       setError(error.message)
     } finally {
       setLoading('sendEmailOTP', false)
@@ -516,7 +504,6 @@ export default function UserDashboard({ user, onLogout }) {
         fetchLogs()
       }
     } catch (error) {
-      console.error('❌ Resend email OTP error:', error)
       setError(error.message)
     } finally {
       setLoading('resendEmailOTP', false)
@@ -535,12 +522,15 @@ export default function UserDashboard({ user, onLogout }) {
   }
 
   const handleProfileUpdate = (updatedProfile) => {
-    console.log('Profile updated:', updatedProfile)
-    fetchUserData()
-  }
 
-  const handlePaymentSuccess = (result) => {
-    setSuccessMessage(result.message)
+    if (updatedProfile && updatedProfile.profilePicture !== undefined) {
+      setCurrentProfilePicture(updatedProfile.profilePicture)
+    }
+
+    if (updatedProfile && updatedProfile.user && updatedProfile.user.profilePicture !== undefined) {
+      setCurrentProfilePicture(updatedProfile.user.profilePicture)
+    }
+
     fetchUserData()
   }
 
@@ -571,9 +561,17 @@ export default function UserDashboard({ user, onLogout }) {
             </div>
             <button
               onClick={() => setShowSidebar(true)}
-              className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
+              className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-700 transition-colors overflow-hidden"
             >
-              <User className="w-5 h-5" />
+              {currentProfilePicture ? (
+                <img 
+                  src={currentProfilePicture} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>

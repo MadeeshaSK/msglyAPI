@@ -17,14 +17,11 @@ export const validateSession = async (storedUser) => {
     const result = await getDashboardData(storedUser.apiKey)
     
     if (result.success) {
-      console.log('✅ Session validation successful')
       return true
     } else {
-      console.log('❌ Session validation failed - invalid API key')
       return false
     }
   } catch (error) {
-    console.error('❌ Session validation error:', error)
     return false
   }
 }
@@ -38,9 +35,7 @@ export const storeSession = (user, view) => {
   try {
     localStorage.setItem('msglyapi_user', JSON.stringify(user))
     localStorage.setItem('msglyapi_view', view)
-    console.log('💾 Session stored')
   } catch (error) {
-    console.error('❌ Error storing session:', error)
   }
 }
 
@@ -62,7 +57,6 @@ export const getStoredSession = () => {
     
     return null
   } catch (error) {
-    console.error('❌ Error getting stored session:', error)
     return null
   }
 }
@@ -74,8 +68,6 @@ export const clearSession = () => {
   try {
     localStorage.removeItem('msglyapi_user')
     localStorage.removeItem('msglyapi_view')
-    console.log('🗑️ Session cleared')
   } catch (error) {
-    console.error('❌ Error clearing session:', error)
   }
 }

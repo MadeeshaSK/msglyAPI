@@ -24,7 +24,6 @@ export default function Home() {
           
           // Validate that the basic required fields exist
           if (storedUser.apiKey && storedUser.name && storedUser.role) {
-            console.log('🔄 Restoring session for:', storedUser.name)
             
             //  Validate session with backend
             const isValid = await validateSession(storedUser)
@@ -32,25 +31,20 @@ export default function Home() {
             if (isValid) {
               setUser(storedUser)
               setCurrentView(storedView)
-              console.log('✅ Session restored successfully')
             } else {
-              console.log('❌ Session validation failed, clearing session')
               clearSession()
               setCurrentView('landing')
             }
           } else {
             // Invalid stored data, clear it
-            console.log('❌ Invalid session data, clearing')
             clearSession()
             setCurrentView('landing')
           }
         } else {
           // No stored session, show landing page
-          console.log('ℹ️ No stored session found')
           setCurrentView('landing')
         }
       } catch (error) {
-        console.error('❌ Error restoring session:', error)
         // Clear corrupted data and go to landing
         clearSession()
         setCurrentView('landing')
@@ -76,7 +70,6 @@ export default function Home() {
   }, [user, currentView, isInitialized])
 
   const handleLogin = (userData) => {
-    console.log('🔐 User logged in:', userData.name)
     setUser(userData)
     
     // Role-based routing
@@ -89,7 +82,6 @@ export default function Home() {
 
   const handleLogout = async () => {
     try {
-      console.log('🔐 Logging out user...')
       
       // Only call Firebase logout if user has firebaseUid
       if (user?.firebaseUid) {
@@ -102,9 +94,7 @@ export default function Home() {
       setUser(null)
       setCurrentView('landing')
       
-      console.log('✅ User logged out successfully')
     } catch (error) {
-      console.error('❌ Logout error:', error)
       // Force logout even if Firebase logout fails
       clearSession()
       setUser(null)
@@ -139,6 +129,5 @@ export default function Home() {
   }
 
   // Fallback to landing page if something goes wrong
-  console.warn('⚠️ Falling back to landing page')
   return <LandingPage onLogin={handleLogin} />
 }

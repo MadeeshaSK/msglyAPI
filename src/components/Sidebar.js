@@ -24,6 +24,7 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [currentProfilePicture, setCurrentProfilePicture] = useState(null)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -110,13 +111,10 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
         setProfileData(profileState)
         setOriginalData(profileState)
         
-        // FIX: Set the current profile picture from the fetched data
         setCurrentProfilePicture(profile.profilePicture || null)
         
-        console.log('✅ Profile loaded successfully')
       }
     } catch (error) {
-      console.error('❌ Error fetching profile:', error)
       setError(error.message)
     } finally {
       setLoading(false)
@@ -189,11 +187,8 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
           ...prev,
           emailNotifications: newNotificationState
         }))
-        
-        console.log('✅ Email notifications preference saved')
       }
     } catch (error) {
-      console.error('❌ Error saving notification preference:', error)
       
       // Revert the local state if save failed
       setProfileData(prev => ({
@@ -225,7 +220,6 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
       
       // Check if email exists before sending verification
       if (verification.emailRequired && !verification.emailSent) {
-        console.log('🔍 Checking if email exists before sending verification...')
         const emailCheck = await checkEmailExists(user.apiKey, profileData.email)
         
         if (emailCheck.exists) {
@@ -240,7 +234,6 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
       
       // Check if phone exists before sending verification
       if (verification.phoneRequired && !verification.phoneSent) {
-        console.log('🔍 Checking if phone exists before sending verification...')
         const phoneCheck = await checkPhoneExists(user.apiKey, profileData.phone)
         
         if (phoneCheck.exists) {
@@ -427,10 +420,8 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
           onProfileUpdate(result.data)
         }
         
-        console.log('✅ Profile updated successfully')
       }
     } catch (error) {
-      console.error('❌ Error updating profile:', error)
       setError(error.message)
     } finally {
       setUpdating(false)
@@ -463,13 +454,10 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
       setLoadingStates(prev => ({ ...prev, uploadingPicture: true }))
       setError('')
       
-      console.log('🖼️ Uploading profile picture...')
-      
       const result = await uploadProfilePicture(user.apiKey, file)
       
       if (result.success) {
         setSuccessMessage('Profile picture updated successfully')
-        console.log('✅ Profile picture uploaded successfully')
         
         // Update current profile picture state immediately
         setCurrentProfilePicture(result.data.profilePicture)
@@ -483,7 +471,6 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
         await fetchProfile()
       }
     } catch (error) {
-      console.error('❌ Error uploading profile picture:', error)
       setError(error.message)
     } finally {
       setLoadingStates(prev => ({ ...prev, uploadingPicture: false }))
@@ -503,13 +490,10 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
       setLoadingStates(prev => ({ ...prev, removingPicture: true }))
       setError('')
       
-      console.log('🗑️ Removing profile picture...')
-      
       const result = await removeProfilePicture(user.apiKey)
       
       if (result.success) {
         setSuccessMessage('Profile picture removed successfully')
-        console.log('✅ Profile picture removed successfully')
         
         // Update current profile picture state immediately
         setCurrentProfilePicture(null)
@@ -523,7 +507,6 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
         await fetchProfile()
       }
     } catch (error) {
-      console.error('❌ Error removing profile picture:', error)
       setError(error.message)
     } finally {
       setLoadingStates(prev => ({ ...prev, removingPicture: false }))
@@ -1073,13 +1056,38 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
         </div>
 
         <div className="p-6 border-t border-white/20">
-          <button
-            onClick={onLogout}
-            className="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Logout</span>
-          </button>
+          {!showLogoutConfirm ? (
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                <p className="text-red-200 text-sm text-center">
+                  Are you sure you want to logout?
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  No
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Yes</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
