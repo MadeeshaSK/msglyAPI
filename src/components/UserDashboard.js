@@ -2,7 +2,7 @@
 
 'use client'
 import { useState, useEffect } from 'react'
-import { User, Key, Activity, Send, RotateCcw, Shield, Settings, LogOut, X, Mail, Phone, RefreshCw, BarChart3, FileText } from 'lucide-react'
+import { User, Key, Activity, Send, RotateCcw, Shield, Settings, LogOut, X, Mail, Phone, RefreshCw, BarChart3, FileText, CreditCard } from 'lucide-react'
 import Sidebar from './Sidebar'
 import { 
   getDashboardData,
@@ -16,6 +16,7 @@ import {
   verifyEmailOTP,
   resendEmailOTP
 } from '../services/userService'
+import PaymentModal from './PaymentModal'
 
 export default function UserDashboard({ user, onLogout }) {
 
@@ -46,6 +47,7 @@ export default function UserDashboard({ user, onLogout }) {
   const [snackbarType, setSnackbarType] = useState('') 
   const [logs, setLogs] = useState([])
   const [refreshing, setRefreshing] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   
   // Individual loading states for each button
   const [loadingStates, setLoadingStates] = useState({
@@ -523,6 +525,7 @@ export default function UserDashboard({ user, onLogout }) {
 
   const copyApiKey = () => {
     navigator.clipboard.writeText(userStats.apiKey)
+    setSuccessMessage('API Key copied to clipboard!')
   }
 
   const handleRefresh = () => {
@@ -533,6 +536,11 @@ export default function UserDashboard({ user, onLogout }) {
 
   const handleProfileUpdate = (updatedProfile) => {
     console.log('Profile updated:', updatedProfile)
+    fetchUserData()
+  }
+
+  const handlePaymentSuccess = (result) => {
+    setSuccessMessage(result.message)
     fetchUserData()
   }
 
@@ -628,10 +636,13 @@ export default function UserDashboard({ user, onLogout }) {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-4 mb-8">
-          <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
-            <Activity className="w-5 h-5" />
-            <span>Buy Quota</span>
-          </button>
+        <button 
+          onClick={() => setShowPaymentModal(true)}
+          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+        >
+          <CreditCard className="w-5 h-5" />
+          <span>Buy Quota</span>
+        </button>
           <button 
             onClick={() => setSimulatorMode(simulatorMode === 'sms' ? 'email' : 'sms')}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
@@ -1080,6 +1091,17 @@ export default function UserDashboard({ user, onLogout }) {
           onClose={() => setShowSidebar(false)}
           onLogout={onLogout}
           onProfileUpdate={handleProfileUpdate}
+        />
+      )}
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          userStats={userStats}
+          onSuccess={handlePaymentSuccess}
+          user={user}
         />
       )}
     </div>

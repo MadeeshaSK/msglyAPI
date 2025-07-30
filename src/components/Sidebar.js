@@ -654,7 +654,7 @@ export default function Sidebar({ user, onClose, onLogout, onProfileUpdate }) {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-6">
           {/* Profile Picture */}
           <div className="text-center mb-6">
             <div className="relative inline-block">
