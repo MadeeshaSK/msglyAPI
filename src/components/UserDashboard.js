@@ -1036,7 +1036,9 @@ export default function UserDashboard({ user, onLogout }) {
                 🔧 Bulk Messaging
               </button>
               <a 
-                href="/?tab=contact"
+                href={`https://wa.me/94763741826?text=Hello,%20I%20need%20support%20with%20msglyAPI.%20My%20account%20details:%20${user.phone ? `Phone: ${user.phone}` : user.email ? `Email: ${user.email}` : `Email: ${user.email}`}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full text-left p-2 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
               >
                 💬 Support Center
