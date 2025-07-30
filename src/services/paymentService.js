@@ -1,7 +1,7 @@
 // src/services/paymentService.js
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-const USD_TO_LKR_RATE = 300 
+const USD_TO_LKR_RATE = process.env.NEXT_PUBLIC_USD_TO_LKR_RATE || 300 
 
 // Pricing plans configuration
 export const PRICING_PLANS = [
@@ -66,7 +66,7 @@ const getUserIdFromApiKey = async (apiKey) => {
     }
     throw new Error('Failed to get user ID');
   } catch (error) {
-    console.error('❌ Error getting user ID:', error);
+    console.error('Error getting user ID:', error);
     throw error;
   }
 }
@@ -74,9 +74,6 @@ const getUserIdFromApiKey = async (apiKey) => {
 // Create Coinbase payment with proper charge creation
 export const createCoinbasePayment = async (apiKey, orderData) => {
   try {
-    console.log('🔍 Creating Coinbase payment...', orderData)
-    
-    // Get userId from apiKey
     const userId = await getUserIdFromApiKey(apiKey);
     
     const response = await fetch(`${API_BASE_URL}/payment/coinbase/create`, {
@@ -92,7 +89,6 @@ export const createCoinbasePayment = async (apiKey, orderData) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Coinbase payment response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to create Coinbase payment')
@@ -103,7 +99,7 @@ export const createCoinbasePayment = async (apiKey, orderData) => {
       data: data.data
     }
   } catch (error) {
-    console.error('❌ Create Coinbase payment error:', error)
+    console.error('Create Coinbase payment error:', error)
     throw new Error(error.message)
   }
 }
@@ -111,9 +107,6 @@ export const createCoinbasePayment = async (apiKey, orderData) => {
 // Create Bank Transfer Order
 export const createBankTransferOrder = async (apiKey, orderData) => {
   try {
-    console.log('🔍 Creating bank transfer order...', orderData)
-    
-    // Get userId from apiKey
     const userId = await getUserIdFromApiKey(apiKey);
     
     const response = await fetch(`${API_BASE_URL}/payment/bank-transfer/create`, {
@@ -129,7 +122,6 @@ export const createBankTransferOrder = async (apiKey, orderData) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Bank transfer order response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to create bank transfer order')
@@ -140,7 +132,7 @@ export const createBankTransferOrder = async (apiKey, orderData) => {
       data: data.data
     }
   } catch (error) {
-    console.error('❌ Create bank transfer order error:', error)
+    console.error('Create bank transfer order error:', error)
     throw new Error(error.message)
   }
 }
@@ -148,13 +140,10 @@ export const createBankTransferOrder = async (apiKey, orderData) => {
 // Get Payment Status
 export const getPaymentStatus = async (apiKey, orderId) => {
   try {
-    console.log('🔍 Getting payment status...', { orderId })
-    
-    // Get userId from apiKey
     const userId = await getUserIdFromApiKey(apiKey);
     
     const response = await fetch(`${API_BASE_URL}/payment/status/${orderId}`, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_API_KEY
@@ -163,7 +152,6 @@ export const getPaymentStatus = async (apiKey, orderId) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Payment status response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to get payment status')
@@ -174,7 +162,7 @@ export const getPaymentStatus = async (apiKey, orderId) => {
       data: data.data
     }
   } catch (error) {
-    console.error('❌ Get payment status error:', error)
+    console.error('Get payment status error:', error)
     throw new Error(error.message)
   }
 }
@@ -182,11 +170,7 @@ export const getPaymentStatus = async (apiKey, orderId) => {
 // Get Payment History
 export const getPaymentHistory = async (apiKey, options = {}) => {
   try {
-    console.log('🔍 Getting payment history...', options)
-    
-    // Get userId from apiKey
     const userId = await getUserIdFromApiKey(apiKey);
-    
     const { page = 1, limit = 20 } = options
     const queryParams = new URLSearchParams({
       page: page.toString(),
@@ -194,7 +178,7 @@ export const getPaymentHistory = async (apiKey, options = {}) => {
     })
     
     const response = await fetch(`${API_BASE_URL}/payment/history?${queryParams}`, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_API_KEY
@@ -203,7 +187,6 @@ export const getPaymentHistory = async (apiKey, options = {}) => {
     })
     
     const data = await response.json()
-    console.log('🔍 Payment history response:', data)
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to fetch payment history')
@@ -215,7 +198,7 @@ export const getPaymentHistory = async (apiKey, options = {}) => {
       pagination: data.pagination
     }
   } catch (error) {
-    console.error('❌ Get payment history error:', error)
+    console.error('Get payment history error:', error)
     throw new Error(error.message)
   }
 }

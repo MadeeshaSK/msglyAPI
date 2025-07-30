@@ -1,18 +1,17 @@
-// src/components/PaymentModal.js
+// src/components/PaymentModal.js 
 
 import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Check, Zap, Star, Crown, Bitcoin, Building, Copy, ExternalLink, AlertCircle, FileText, RefreshCw } from 'lucide-react';
 import { PRICING_PLANS, calculateCustomPrice, createBankTransferOrder, createCoinbasePayment, getPaymentHistory, getPaymentStatus } from '../services/paymentService';
 
-// Payment History Modal Component
+// Payment History Modal Component 
 const PaymentHistoryModal = ({ isOpen, onClose, history, loading, onRefresh }) => {
   if (!isOpen) return null;
   
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed':
+      case 'success':
         return 'bg-green-600/20 text-green-300';
-      case 'pending':
       case 'pending_verification':
       case 'awaiting_payment':
         return 'bg-yellow-600/20 text-yellow-300';
@@ -30,103 +29,163 @@ const PaymentHistoryModal = ({ isOpen, onClose, history, loading, onRefresh }) =
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-60 p-4">
-      <div className="bg-slate-900 rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto scrollbar-hide">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+      <div className="bg-slate-900 rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl border border-white/10">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-slate-800/50">
           <h3 className="text-xl font-bold text-white flex items-center">
-            <FileText className="w-6 h-6 mr-2" />
+            <FileText className="w-6 h-6 mr-2 text-blue-400" />
             Payment History
           </h3>
           <div className="flex items-center space-x-2">
             <button 
               onClick={onRefresh}
               disabled={loading}
-              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors flex items-center space-x-1 disabled:opacity-50"
+              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
             </button>
             <button 
               onClick={onClose} 
-              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
         
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {loading ? (
-            <div className="text-center py-8">
+            <div className="text-center py-12">
               <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-white/60">Loading payment history...</p>
+              <p className="text-white/60 text-lg">Loading payment history...</p>
+              <p className="text-white/40 text-sm mt-2">Please wait while we fetch your payment data</p>
             </div>
           ) : history.length === 0 ? (
-            <div className="text-center py-8">
-              <CreditCard className="w-12 h-12 text-white/30 mx-auto mb-4" />
-              <p className="text-white/60">No payment history found</p>
-              <p className="text-white/40 text-sm mt-2">Your completed payments will appear here</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="w-8 h-8 text-white/30" />
+              </div>
+              <h4 className="text-white/80 text-lg font-medium mb-2">No Payment History</h4>
+              <p className="text-white/60 mb-2">You haven't made any payments yet</p>
+              <p className="text-white/40 text-sm">Your completed payments will appear here once you make a purchase</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/20">
-                    <th className="text-left text-white/60 py-3">Date</th>
-                    <th className="text-left text-white/60 py-3">Order ID</th>
-                    <th className="text-left text-white/60 py-3">Amount</th>
-                    <th className="text-left text-white/60 py-3">Credits</th>
-                    <th className="text-left text-white/60 py-3">Method</th>
-                    <th className="text-left text-white/60 py-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((payment) => (
-                    <tr key={payment.id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
-                      <td className="py-4 text-white/80">
-                        <div>
+            <div className="space-y-4">
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/20">
+                      <th className="text-left text-white/60 py-3 px-2 font-medium">Date</th>
+                      <th className="text-left text-white/60 py-3 px-2 font-medium">Order ID</th>
+                      <th className="text-left text-white/60 py-3 px-2 font-medium">Amount</th>
+                      <th className="text-left text-white/60 py-3 px-2 font-medium">Credits</th>
+                      <th className="text-left text-white/60 py-3 px-2 font-medium">Method</th>
+                      <th className="text-left text-white/60 py-3 px-2 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((payment) => (
+                      <tr key={payment.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <td className="py-4 px-2 text-white/80">
+                          <div className="text-sm">
+                            {new Date(payment.createdAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-white/50">
+                            {new Date(payment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </td>
+                        <td className="py-4 px-2 text-white/80">
+                          <div className="font-mono text-sm max-w-32 truncate" title={payment.orderId}>
+                            {payment.orderId}
+                          </div>
+                        </td>
+                        <td className="py-4 px-2 text-white font-semibold">
+                          <div className="text-sm">${payment.priceUSD}</div>
+                          {payment.priceLKR && (
+                            <div className="text-white/60 text-xs">
+                              {payment.priceLKR} LKR
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-4 px-2">
+                          <div className="text-green-400 font-medium text-sm">
+                            +{payment.quota}
+                          </div>
+                        </td>
+                        <td className="py-4 px-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${getMethodColor(payment.paymentMethod)}`}>
+                            {payment.paymentMethod === 'coinbase' ? 'Crypto' : 'Bank Transfer'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(payment.status)}`}>
+                            {payment.status === 'awaiting_payment' ? 'Awaiting Payment' : 
+                             payment.status === 'pending_verification' ? 'Pending Verification' :
+                             payment.status === 'success' ? 'Success' :
+                             payment.status === 'failed' ? 'Failed' :
+                             payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {history.map((payment) => (
+                  <div key={payment.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="text-white font-medium text-sm">
                           {new Date(payment.createdAt).toLocaleDateString()}
                         </div>
-                        <div className="text-xs text-white/50">
-                          {new Date(payment.createdAt).toLocaleTimeString()}
+                        <div className="text-white/50 text-xs">
+                          {new Date(payment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                      </td>
-                      <td className="py-4 text-white/80 font-mono text-sm">
-                        <div className="max-w-32 truncate" title={payment.orderId}>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(payment.status)}`}>
+                        {payment.status === 'awaiting_payment' ? 'Awaiting Payment' : 
+                         payment.status === 'pending_verification' ? 'Pending Verification' :
+                         payment.status === 'success' ? 'Success' :
+                         payment.status === 'failed' ? 'Failed' :
+                         payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-white/60">Order ID</p>
+                        <p className="text-white font-mono text-xs truncate" title={payment.orderId}>
                           {payment.orderId}
-                        </div>
-                      </td>
-                      <td className="py-4 text-white font-semibold">
-                        <div>${payment.priceUSD}</div>
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-white/60">Amount</p>
+                        <p className="text-white font-semibold">${payment.priceUSD}</p>
                         {payment.priceLKR && (
-                          <div className="text-white/60 text-sm">
-                            {payment.priceLKR} LKR
-                          </div>
+                          <p className="text-white/60 text-xs">{payment.priceLKR} LKR</p>
                         )}
-                      </td>
-                      <td className="py-4 text-white">
-                        <div className="text-green-400 font-medium">
-                          +{payment.quota}
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <span className={`px-2 py-1 rounded text-xs ${getMethodColor(payment.paymentMethod)}`}>
+                      </div>
+                      <div>
+                        <p className="text-white/60">Credits</p>
+                        <p className="text-green-400 font-medium">+{payment.quota}</p>
+                      </div>
+                      <div>
+                        <p className="text-white/60">Method</p>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getMethodColor(payment.paymentMethod)}`}>
                           {payment.paymentMethod === 'coinbase' ? 'Crypto' : 'Bank Transfer'}
                         </span>
-                      </td>
-                      <td className="py-4">
-                        <span className={`px-2 py-1 rounded text-xs ${getStatusColor(payment.status)}`}>
-                          {payment.status === 'awaiting_payment' ? 'Awaiting Payment' : 
-                           payment.status === 'pending_verification' ? 'Pending Verification' :
-                           payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -135,7 +194,7 @@ const PaymentHistoryModal = ({ isOpen, onClose, history, loading, onRefresh }) =
   );
 };
 
-// Updated PaymentModal Component
+// PaymentModal Component 
 const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [customQuota, setCustomQuota] = useState('');
@@ -163,39 +222,39 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
     swiftCode: "BCEYLKLX"
   };
 
-  // Fetch Payment History
+  // Fetch Payment History 
   const fetchPaymentHistory = async () => {
     setHistoryLoading(true);
+    setError(''); 
+    
     try {
       const result = await getPaymentHistory(user.apiKey, { page: 1, limit: 20 });
+      
       if (result.success) {
         setPaymentHistory(result.data || []);
       } else {
         setError('Failed to load payment history');
       }
     } catch (error) {
-      console.error('❌ Payment history error:', error);
-      setError('Failed to load payment history');
+      setError(`Failed to load payment history: ${error.message}`);
     } finally {
       setHistoryLoading(false);
     }
   };
 
-  // Poll Payment Status
+  // Poll Payment Status 
   const pollPaymentStatus = async (orderId) => {
     const maxAttempts = 60; // 10 minutes with 10-second intervals
     let attempts = 0;
     
     const checkStatus = async () => {
       try {
-        console.log(`🔍 Checking payment status for ${orderId} (attempt ${attempts + 1})`);
         const statusResult = await getPaymentStatus(user.apiKey, orderId);
         
         if (statusResult.success) {
           const status = statusResult.data.status;
           
-          if (status === 'completed') {
-            console.log(`✅ Payment completed for ${orderId}`);
+          if (status === 'success') {
             setSuccessMessage('🎉 Payment confirmed! Your quota has been activated.');
             setPollingOrderId(null);
             
@@ -215,26 +274,22 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
           }
           
           if (status === 'failed') {
-            console.log(`❌ Payment failed for ${orderId}`);
             setError('Payment failed. Please try again or contact support.');
             setPollingOrderId(null);
             return;
           }
           
-          // Continue polling for pending statuses
-          if (['pending', 'awaiting_payment'].includes(status)) {
+          if (['awaiting_payment', 'pending_verification'].includes(status)) {
             attempts++;
             if (attempts < maxAttempts) {
               setTimeout(checkStatus, 10000); // Check every 10 seconds
             } else {
-              console.log(`⏰ Polling timeout for ${orderId}`);
               setSuccessMessage('Payment initiated. You will receive confirmation once payment is processed.');
               setPollingOrderId(null);
             }
           }
         }
       } catch (error) {
-        console.error('❌ Status check error:', error);
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, 10000);
@@ -283,12 +338,6 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
     setSuccessMessage('');
 
     try {
-      console.log('🔍 Creating Coinbase payment...', {
-        planId: selectedPlan.id,
-        quota: selectedPlan.quota,
-        priceUSD: selectedPlan.priceUSD
-      });
-
       // Create Coinbase payment
       const paymentResult = await createCoinbasePayment(user.apiKey, {
         planId: selectedPlan.id,
@@ -300,8 +349,6 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
       if (paymentResult.success) {
         const { hostedUrl, orderId } = paymentResult.data;
         
-        console.log(`✅ Payment created: ${orderId}, URL: ${hostedUrl}`);
-        
         if (hostedUrl) {
           // Start polling for payment status
           setPollingOrderId(orderId);
@@ -312,13 +359,11 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
           
           setSuccessMessage('Redirected to Coinbase payment page. Complete your payment there.');
           
-          // Don't close modal immediately - let polling handle it
         } else {
           throw new Error('No payment URL received from Coinbase');
         }
       }
     } catch (error) {
-      console.error('❌ Coinbase payment error:', error);
       setError(error.message || 'Failed to create payment. Please try again.');
     } finally {
       setLoading(false);
@@ -356,10 +401,31 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
     setTimeout(() => setSuccessMessage(''), 2000);
   };
 
+  const handleHistoryClick = () => {
+    setShowPaymentHistory(true);
+  };
+
+  const handleHistoryClose = () => {
+    setShowPaymentHistory(false);
+  };
+
   // Load payment history when modal opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && user?.apiKey) {
       fetchPaymentHistory();
+    }
+  }, [isOpen, user?.apiKey]);
+
+  // Reset states when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowPaymentHistory(false);
+      setError('');
+      setSuccessMessage('');
+      setShowBankDetails(false);
+      setOrderCreated(null);
+      setSelectedPlan(null);
+      setCustomQuota('');
     }
   }, [isOpen]);
 
@@ -374,7 +440,7 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
             <h2 className="text-2xl font-bold text-white">Purchase Additional Quota</h2>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setShowPaymentHistory(true)}
+                onClick={handleHistoryClick}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
                 <FileText className="w-4 h-4" />
@@ -645,7 +711,7 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
                   </div>
                   <div>
                     <p className="text-white/60">Status</p>
-                    <p className="text-yellow-400">Pending Payment</p>
+                    <p className="text-yellow-400">Pending Verification</p>
                   </div>
                 </div>
               </div>
@@ -741,8 +807,10 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
                   >
                     Close
                   </button>
-                  <a
-                    href="/?tab=contact"
+                  <a 
+                    href={`https://wa.me/94763741826?text=Hello,%20I%20need%20support%20with%20msglyAPI.%20My%20account%20details:%20${user.phone ? `Phone: ${user.phone}` : user.email ? `Email: ${user.email}` : `Name: ${user.name || 'Not provided'}`}%20Order%20ID:%20${orderCreated?.orderId || 'N/A'}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -756,13 +824,15 @@ const PaymentModal = ({ isOpen, onClose, userStats, onSuccess, user }) => {
       </div>
 
       {/* Payment History Modal */}
-      <PaymentHistoryModal
-        isOpen={showPaymentHistory}
-        onClose={() => setShowPaymentHistory(false)}
-        history={paymentHistory}
-        loading={historyLoading}
-        onRefresh={fetchPaymentHistory}
-      />
+      {showPaymentHistory && (
+        <PaymentHistoryModal
+          isOpen={showPaymentHistory}
+          onClose={handleHistoryClose}
+          history={paymentHistory}
+          loading={historyLoading}
+          onRefresh={fetchPaymentHistory}
+        />
+      )}
     </>
   );
 };
