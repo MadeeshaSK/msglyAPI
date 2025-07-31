@@ -534,6 +534,27 @@ export default function UserDashboard({ user, onLogout }) {
     fetchUserData()
   }
 
+  // Handle payment success
+  const handlePaymentSuccess = (paymentData) => {
+    console.log('Payment successful:', paymentData)
+    
+    // Show success message
+    if (paymentData && paymentData.message) {
+      setSuccessMessage(paymentData.message)
+    } else {
+      setSuccessMessage('Payment completed successfully! Your quota has been updated.')
+    }
+    
+    // Refresh dashboard data to show updated quota
+    fetchUserData()
+    fetchLogs()
+    
+    // Close payment modal after a short delay
+    setTimeout(() => {
+      setShowPaymentModal(false)
+    }, 2000)
+  }
+
   // Determine account plan
   const accountPlan = userStats.requestQuota > 100 ? 'Paid Plan' : 'Free Plan'
   const planColor = userStats.requestQuota > 100 ? 'text-purple-400' : 'text-blue-400'
