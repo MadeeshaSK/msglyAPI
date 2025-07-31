@@ -1,3 +1,5 @@
+// src/components/admin/ChatsTab.js
+
 'use client'
 import { useState, useEffect } from 'react'
 import { MessageSquare, Search, ArrowLeft, Send, BarChart3 } from 'lucide-react'

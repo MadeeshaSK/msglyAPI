@@ -1,3 +1,5 @@
+// src/components/admin/AnalyticsTab.js
+
 'use client'
 import { useState, useEffect } from 'react'
 import { BarChart3, Users, DollarSign, TrendingUp, TrendingDown, CreditCard, CheckCircle, Phone, Mail, Zap, Activity } from 'lucide-react'

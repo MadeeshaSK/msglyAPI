@@ -1,3 +1,5 @@
+// src/components/admin/NotificationsTab.js
+
 'use client'
 import { useState, useEffect } from 'react'
 import { Bell, Send, Search, Settings } from 'lucide-react'

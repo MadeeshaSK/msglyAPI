@@ -1,3 +1,5 @@
+// src/components/AdminDashboard.js
+
 'use client'
 import { useState, useEffect } from 'react'
 import { Users, Settings, User, X, Home, BarChart3, MessageSquare, Bell, Loader2, AlertCircle } from 'lucide-react'
