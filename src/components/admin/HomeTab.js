@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { Home, DollarSign, Users, Search, CheckCircle, XCircle, Eye, Clock, AlertCircle, ArrowLeft, Trash2, Edit, Plus, Loader2, Check, X, Activity, User, Key } from 'lucide-react'
 import { homeTabService } from '../../services/admin/homeTabService'
 
-export default function HomeTab({ dashboardData, onRefresh }) {
+export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
   const [selectedUser, setSelectedUser] = useState(null)
   const [selectedPayment, setSelectedPayment] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -226,10 +226,10 @@ export default function HomeTab({ dashboardData, onRefresh }) {
         setIsEditing(false)
         setSelectedUser(result.data)
         await onRefresh()
-        alert('User updated successfully!')
+        onShowSnackbar && onShowSnackbar('User updated successfully!', 'success')
       }
     } catch (error) {
-      alert(`Failed to update user: ${error.message}`)
+      onShowSnackbar && onShowSnackbar(`Failed to update user: ${error.message}`, 'error')
     } finally {
       setUserLoading(false)
     }
@@ -245,10 +245,10 @@ export default function HomeTab({ dashboardData, onRefresh }) {
       if (result.success) {
         setSelectedUser(null)
         await onRefresh()
-        alert('User deleted successfully!')
+        onShowSnackbar && onShowSnackbar('User deleted successfully!', 'success')
       }
     } catch (error) {
-      alert(`Failed to delete user: ${error.message}`)
+      onShowSnackbar && onShowSnackbar(`Failed to delete user: ${error.message}`, 'error')
     } finally {
       setUserLoading(false)
     }
@@ -278,7 +278,7 @@ export default function HomeTab({ dashboardData, onRefresh }) {
         ])
       }
     } catch (error) {
-      alert(`Failed to load user details: ${error.message}`)
+      onShowSnackbar && onShowSnackbar(`Failed to load user details: ${error.message}`, 'error')
     } finally {
       setUserLoading(false)
     }
@@ -323,10 +323,10 @@ export default function HomeTab({ dashboardData, onRefresh }) {
           await loadPayments()
         }
         setSelectedPayment(null)
-        alert('Payment status updated successfully!')
+        onShowSnackbar && onShowSnackbar('Payment status updated successfully!', 'success')
       }
     } catch (error) {
-      alert(`Failed to update payment status: ${error.message}`)
+      onShowSnackbar && onShowSnackbar(`Failed to update payment status: ${error.message}`, 'error')
     } finally {
       setPaymentLoading(false)
     }
@@ -943,6 +943,7 @@ export default function HomeTab({ dashboardData, onRefresh }) {
           </div>
         )}
       </div>
+
     </div>
   )
 }
