@@ -23,6 +23,8 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
   const [logLoading, setLogLoading] = useState(false)
   const [searchResults, setSearchResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
 
   const [userForm, setUserForm] = useState({
     name: '',
@@ -236,14 +238,14 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
   }
 
   const handleDeleteUser = async (userId) => {
-    if (!confirm('Are you sure you want to delete this user?')) return
-    
     try {
       setUserLoading(true)
       const result = await homeTabService.deleteUser(userId)
       
       if (result.success) {
         setSelectedUser(null)
+        setShowDeleteConfirm(false)
+        setUserToDelete(null)
         await onRefresh()
         onShowSnackbar && onShowSnackbar('User deleted successfully!', 'success')
       }
@@ -252,6 +254,11 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     } finally {
       setUserLoading(false)
     }
+  }
+
+  const handleDeleteClick = (userId) => {
+    setUserToDelete(userId)
+    setShowDeleteConfirm(true)
   }
 
   const handleUserSelect = async (user) => {
@@ -577,13 +584,13 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
                     <span>Edit</span>
                   </button>
                   <button 
-                    onClick={() => handleDeleteUser(selectedUser.id)}
-                    disabled={userLoading}
-                    className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete</span>
-                  </button>
+                  onClick={() => handleDeleteClick(selectedUser.id)}
+                  disabled={userLoading}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
+                </button>
                 </>
               ) : (
                 <>
@@ -894,7 +901,10 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
             <div key={log.id || index} className="bg-white/5 p-3 rounded-lg">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/60 font-mono">
-                  {log.time || (log.createdAt ? new Date(log.createdAt).toLocaleTimeString() : new Date().toLocaleTimeString())}
+                  {log.createdAt ? new Date(log.createdAt).toLocaleString() : 
+                  log.timestamp ? new Date(log.timestamp).toLocaleString() :
+                  log.time ? (log.time.includes('T') ? new Date(log.time).toLocaleString() : log.time) :
+                  'Unknown time'}
                 </span>
                 <span className={`px-2 py-1 rounded flex items-center space-x-1 ${getLogStatusColor(log.status)}`}>
                   {getLogStatusIcon(log.status)}
@@ -912,20 +922,6 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
               )}
             </div>
           ))}
-
-          {currentLogs.length === 0 && !logLoading && (
-            <div className="text-center py-8">
-              <Activity className="w-12 h-12 text-white/40 mx-auto mb-4" />
-              <p className="text-white/60">No logs found</p>
-            </div>
-          )}
-
-          {logLoading && (
-            <div className="text-center py-8">
-              <Loader2 className="w-8 h-8 text-white/40 mx-auto mb-4 animate-spin" />
-              <p className="text-white/60">Loading logs...</p>
-            </div>
-          )}
         </div>
 
         {selectedUser && (
@@ -943,6 +939,44 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
           </div>
         )}
       </div>
+
+      {/* Delete User Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="glass p-6 rounded-xl max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                <Trash2 className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Delete User
+              </h3>
+              <p className="text-white/70 mb-6">
+                Are you sure you want to delete this user? This action cannot be undone.
+              </p>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setUserToDelete(null)
+                  }}
+                  className="flex-1 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteUser(userToDelete)}
+                  disabled={userLoading}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                >
+                  {userLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )
