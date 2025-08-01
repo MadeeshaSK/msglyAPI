@@ -460,6 +460,7 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
       <header className="glass border-b border-white/10">
         <div className="px-6 py-4 flex justify-between items-center">
+          {/* Left Section - Logo & Status */}
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-white">
               msgly<span className="text-purple-400">API</span>
@@ -475,6 +476,30 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
             </div>
           </div>
           
+          {/* Middle Section - Navigation Tabs */}
+          <div className="flex space-x-4">
+            {[
+              { key: 'home', icon: Home, label: 'Home' },
+              { key: 'analysis', icon: BarChart3, label: 'Analysis' },
+              { key: 'chats', icon: MessageSquare, label: 'Chats' },
+              { key: 'notifications', icon: Bell, label: 'Notifications' }
+            ].map(({ key, icon: Icon, label }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                  activeTab === key
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white/10 text-white/70 hover:bg-white/20'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+          
+          {/* Right Section - Admin Panel & Profile */}
           <div className="flex items-center space-x-4">
             <div className="text-white font-bold text-lg">
               Admin<span className="text-purple-400">Panel</span>
@@ -498,31 +523,6 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        <div className="glass p-6 rounded-xl mb-8">
-          
-          <div className="flex space-x-4">
-            {[
-              { key: 'home', icon: Home, label: 'Home' },
-              { key: 'analysis', icon: BarChart3, label: 'Analysis' },
-              { key: 'chats', icon: MessageSquare, label: 'Chats' },
-              { key: 'notifications', icon: Bell, label: 'Notifications' }
-            ].map(({ key, icon: Icon, label }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
-                  activeTab === key
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         {renderActiveTab()}
       </div>
 

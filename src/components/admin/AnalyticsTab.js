@@ -6,6 +6,9 @@ import { BarChart3, Users, DollarSign, TrendingUp, TrendingDown, CreditCard, Che
 import { analyticsTabService } from '../../services/admin/analyticsTabService'
 
 export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false)
+  const [customStartDate, setCustomStartDate] = useState('')
+  const [customEndDate, setCustomEndDate] = useState('')
   const [analyticsTimeframe, setAnalyticsTimeframe] = useState('7days')
   const [payments, setPayments] = useState([])
   const [requests, setRequests] = useState([])
@@ -62,6 +65,23 @@ export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
       setLoading(false)
     }
   }
+
+  // Add this function to handle custom date selection
+  const handleCustomDateApply = () => {
+    if (customStartDate && customEndDate) {
+      setAnalyticsTimeframe(`custom_${customStartDate}_${customEndDate}`)
+      setShowCustomDatePicker(false)
+      // loadAnalyticsData will be triggered by useEffect
+    }
+  }
+
+  // Add this function to reset custom dates
+  const resetCustomDates = () => {
+    setCustomStartDate('')
+    setCustomEndDate('')
+    setShowCustomDatePicker(false)
+  }
+
 
   const getUserAnalytics = () => {
     // Use current dashboard data for overall stats, analytics users for timeframe-specific data
@@ -170,10 +190,18 @@ export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
   }
 
   const getTimeframeLabel = () => {
+    if (analyticsTimeframe.startsWith('custom_')) {
+      const [, startDate, endDate] = analyticsTimeframe.split('_')
+      return `${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`
+    }
+    
     switch(analyticsTimeframe) {
+      case '1hour': return 'Last Hour'
+      case '24hours': return 'Last 24 Hours'
       case '7days': return 'Last 7 Days'
       case '30days': return 'Last 30 Days'
-      case 'year': return 'Last Year'
+      case '365days': return 'Last Year'
+      case 'alltime': return 'All Time'
       default: return 'Selected Period'
     }
   }
@@ -195,41 +223,115 @@ export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
 
   return (
     <div className="space-y-8">
-      {/* Analytics Header */}
+      
+      {/* Time Filter Section */}
       <div className="glass p-6 rounded-xl">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white flex items-center">
-            <BarChart3 className="w-8 h-8 mr-3" />
-            Analytics Dashboard
-          </h2>
-          <div className="flex items-center space-x-4">
-            <select
-              value={analyticsTimeframe}
-              onChange={(e) => setAnalyticsTimeframe(e.target.value)}
-              className="px-4 py-2 bg-white/10 border border-white/30 rounded-lg text-white focus:border-purple-400 focus:outline-none"
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2 flex items-center">
+              <BarChart3 className="w-7 h-7 mr-3" />
+              Analytics Dashboard
+            </h2>
+            <p className="text-white/60">
+              Data for: <span className="text-purple-400 font-medium">{getTimeframeLabel()}</span>
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Quick Time Filters */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: '1hour', label: 'Hour' },
+                { key: '24hours', label: '24h' },
+                { key: '7days', label: '7d' },
+                { key: '30days', label: '30d' },
+                { key: '365days', label: 'Year' },
+                { key: 'alltime', label: 'All' }
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setAnalyticsTimeframe(key)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    analyticsTimeframe === key
+                      ? 'bg-purple-600 text-white shadow-lg'
+                      : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            
+            {/* Custom Date Range Button */}
+            <button
+              onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 ${
+                analyticsTimeframe.startsWith('custom_')
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+              }`}
             >
-              <option value="7days">Last 7 Days</option>
-              <option value="30days">Last 30 Days</option>
-              <option value="year">Last Year</option>
-            </select>
+              <span>Custom</span>
+              <svg className={`w-4 h-4 transition-transform ${showCustomDatePicker ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {/* Refresh Button */}
             <button
               onClick={loadAnalyticsData}
               disabled={loading}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+              className="px-4 py-2 bg-purple-600/50 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
             >
-              <Activity className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
+              <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
         </div>
-        {error && (
-          <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center space-x-2">
-            <AlertCircle className="w-5 h-5 text-red-400" />
-            <p className="text-red-200 text-sm">{error}</p>
+        
+        {/* Custom Date Picker */}
+        {showCustomDatePicker && (
+          <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="flex flex-col sm:flex-row items-end gap-4">
+              <div className="flex-1">
+                <label className="block text-white/70 text-sm mb-2">Start Date</label>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="w-full bg-white/10 text-white rounded-lg px-3 py-2 border border-white/20 focus:border-purple-400 focus:outline-none"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-white/70 text-sm mb-2">End Date</label>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="w-full bg-white/10 text-white rounded-lg px-3 py-2 border border-white/20 focus:border-purple-400 focus:outline-none"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCustomDateApply}
+                  disabled={!customStartDate || !customEndDate}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Apply
+                </button>
+                <button
+                  onClick={resetCustomDates}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
-
       <div className="grid lg:grid-cols-3 gap-8">
         {/* User Analytics */}
         <div className="glass p-6 rounded-xl">
