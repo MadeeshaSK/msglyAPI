@@ -640,7 +640,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
             )}
           </div>
 
-          <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-hide">
+          <div className="space-y-2 h-[600px] overflow-y-auto scrollbar-hide">
             {displayUsers.map((user) => (
               <div
                 key={user.id}
@@ -811,7 +811,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
             ))}
           </div>
 
-          <div className="space-y-2 max-h-80 overflow-y-auto scrollbar-hide">
+          <div className="space-y-2 h-[560px] overflow-y-auto scrollbar-hide">
             {filteredPayments.map((payment) => (
               <div
                 key={payment.id}
@@ -896,7 +896,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
           {logLoading && <Loader2 className="w-4 h-4 text-purple-400 animate-spin ml-2" />}
         </h4>
         
-        <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-hide">
+        <div className="space-y-2 h-[300px] overflow-y-auto scrollbar-hide">
           {currentLogs.slice(0, 10).map((log, index) => (
             <div key={log.id || index} className="bg-white/5 p-3 rounded-lg">
               <div className="flex items-center justify-between text-xs">
