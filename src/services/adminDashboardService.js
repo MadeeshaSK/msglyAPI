@@ -101,11 +101,11 @@ const adminDashboardService = {
 
   async getAdminProfile(apiKey) {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/profile`, {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': ADMIN_API_KEY
+          'x-api-key': apiKey
         }
       })
 

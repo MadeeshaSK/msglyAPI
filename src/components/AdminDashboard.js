@@ -146,16 +146,21 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
 
   const fetchAdminProfile = async () => {
     try {
-      // If user object has an ID, fetch their profile
-      if (user && (user.id || user.apiKey)) {
-        const profileResult = await adminDashboardService.getAdminProfile(user.id || user.apiKey)
+      // Use the same logic as UserDashboard - check if user has apiKey
+      if (user && user.apiKey) {
+        console.log('Fetching admin profile...')
+        
+        const profileResult = await adminDashboardService.getAdminProfile(user.apiKey)
         if (profileResult.success && profileResult.data) {
           setCurrentProfilePicture(profileResult.data.profilePicture || null)
         }
+      } else {
+        console.log('No API key available for admin profile')
+        setCurrentProfilePicture(null)
       }
     } catch (error) {
       console.log('Could not fetch admin profile:', error.message)
-      // Don't show error to user, just log it
+      setCurrentProfilePicture(null)
     }
   }
 
