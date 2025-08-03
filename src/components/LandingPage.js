@@ -1,14 +1,21 @@
-// src/components/LandingPage.js
-
 'use client'
 import { useState, useEffect } from 'react'
-import { Phone, Mail, Shield, Zap, Users, BarChart3, Headphones } from 'lucide-react'
+import { Phone, Mail, Shield, Zap, Users, BarChart3, Headphones, Github, Linkedin, Facebook, MessageCircle } from 'lucide-react'
 import AuthModal from './AuthModal'
+import { sendEmail } from '../services/userService'
 
 export default function LandingPage({ onLogin }) {
   const [activeTab, setActiveTab] = useState('home')
   const [showAuth, setShowAuth] = useState(false)
   const [authMode, setAuthMode] = useState('login')
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState('')
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -23,11 +30,85 @@ export default function LandingPage({ onLogin }) {
     setShowAuth(true)
   }
 
+  const handleContactFormChange = (e) => {
+    setContactForm({
+      ...contactForm,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const handleContactSubmit = async () => {
+    // Basic validation
+    if (!contactForm.name || !contactForm.email || !contactForm.subject || !contactForm.message) {
+      setSubmitMessage('Please fill in all fields.')
+      return
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(contactForm.email)) {
+      setSubmitMessage('Please enter a valid email address.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitMessage('')
+
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_ADMIN_API_KEY
+      
+      // Send email to admin
+      const adminSubject = `Contact Form: ${contactForm.subject} - From ${contactForm.name}`
+      const adminMessage = `New contact form submission:
+
+Name: ${contactForm.name}
+Email: ${contactForm.email}
+Subject: ${contactForm.subject}
+
+Message:
+${contactForm.message}
+
+---
+Reply to: ${contactForm.email}`
+      
+      const adminResult = await sendEmail(apiKey, 'madeeshasachindu2@gmail.com', adminSubject, adminMessage)
+      
+      if (adminResult.success) {
+        // Send confirmation email to user
+        const userSubject = `Thank you for contacting msglyAPI - ${contactForm.subject}`
+        const userMessage = `Dear ${contactForm.name},
+
+Thank you for contacting us! We have received your message and will respond as soon as possible.
+
+Your message: "${contactForm.message}"
+
+We typically respond within 24 hours.
+
+Best regards,
+msglyAPI Team`
+        
+        const userResult = await sendEmail(apiKey, contactForm.email, userSubject, userMessage)
+        
+        if (userResult.success) {
+          setSubmitMessage('Message sent successfully! We will be in touch with you as much as possible.')
+          setContactForm({ name: '', email: '', subject: '', message: '' })
+        }
+      }
+    } catch (error) {
+      setSubmitMessage(error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
       {/* Header */}
-      <header className="glass fixed w-full top-0 z-50">
+      <header className="glass fixed w-full top-0 z-50" style={{
+        backdropFilter: 'blur(20px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+      }}>
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-white flex items-center space-x-2">
             <span>
@@ -99,7 +180,11 @@ export default function LandingPage({ onLogin }) {
                 { icon: Shield, title: 'Secure', desc: 'Enterprise-grade security' },
                 { icon: BarChart3, title: 'Scalable', desc: 'Handle millions of requests' }
               ].map((feature, idx) => (
-                <div key={idx} className="glass p-8 rounded-2xl">
+                <div key={idx} className="glass p-8 rounded-2xl" style={{
+                  backdropFilter: 'blur(20px)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
                   <feature.icon className="w-12 h-12 text-blue-400 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
                   <p className="text-white/70">{feature.desc}</p>
@@ -121,7 +206,11 @@ export default function LandingPage({ onLogin }) {
                 { title: '24/7 Customer Support', desc: 'Seamless communication for customer assistance', icon: Headphones },
                 { title: 'Developer Tools', desc: 'API key and documentation', icon: Zap }
               ].map((service, idx) => (
-                <div key={idx} className="glass p-6 rounded-xl">
+                <div key={idx} className="glass p-6 rounded-xl" style={{
+                  backdropFilter: 'blur(20px)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
                   <service.icon className="w-10 h-10 text-blue-400 mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">{service.title}</h3>
                   <p className="text-white/70">{service.desc}</p>
@@ -141,15 +230,27 @@ export default function LandingPage({ onLogin }) {
                 enterprise-grade security and 99.9% uptime guarantee.
               </p>
               <div className="grid md:grid-cols-3 gap-8 mt-12">
-                <div className="glass p-6 rounded-xl">
+                <div className="glass p-6 rounded-xl" style={{
+                  backdropFilter: 'blur(20px)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
                   <h3 className="text-2xl font-bold text-blue-400 mb-2">10M+</h3>
                   <p className="text-white">Messages Delivered</p>
                 </div>
-                <div className="glass p-6 rounded-xl">
+                <div className="glass p-6 rounded-xl" style={{
+                  backdropFilter: 'blur(20px)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
                   <h3 className="text-2xl font-bold text-blue-400 mb-2">50+</h3>
                   <p className="text-white">Countries Supported</p>
                 </div>
-                <div className="glass p-6 rounded-xl">
+                <div className="glass p-6 rounded-xl" style={{
+                  backdropFilter: 'blur(20px)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
                   <h3 className="text-2xl font-bold text-blue-400 mb-2">99.9%</h3>
                   <p className="text-white">Uptime Guarantee</p>
                 </div>
@@ -158,12 +259,16 @@ export default function LandingPage({ onLogin }) {
           </section>
         )}
 
-{activeTab === 'contact' && (
+        {activeTab === 'contact' && (
           <section className="container mx-auto px-6 py-20">
             <h2 className="text-4xl font-bold text-white text-center mb-12">Contact Us</h2>
             <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
               {/* Contact Information */}
-              <div className="glass p-8 rounded-2xl">
+              <div className="glass p-8 rounded-2xl" style={{
+                backdropFilter: 'blur(20px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
                 <h3 className="text-2xl font-bold text-white mb-6">Get in Touch</h3>
                 <p className="text-white/80 mb-8">
                   We're here to help! Reach out to us through any of the following channels.
@@ -172,34 +277,63 @@ export default function LandingPage({ onLogin }) {
                 <div className="space-y-6">
                   {/* Email */}
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-lg">
+                    <img 
+                      src="/gmail.png" 
+                      alt="Gmail"
+                      className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                    />
                     </div>
                     <div>
                       <p className="text-white font-medium">Email</p>
-                      <p className="text-blue-400">msglyapi@gmail.com</p>
+                      <a 
+                        href="mailto:madeeshasachindu2@gmail.com" 
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        madeeshasachindu2@gmail.com
+                      </a>
                     </div>
                   </div>
                   
                   {/* Phone */}
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-                      <Phone className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-lg">
+                    <img 
+                      src="/phone.png" 
+                      alt="Phone"
+                      className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                    />
                     </div>
                     <div>
                       <p className="text-white font-medium">Hotline</p>
-                      <p className="text-blue-400">+94 75 932 7242</p>
+                      <a 
+                        href="tel:+94763741826" 
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        +94 76 374 1826
+                      </a>
                     </div>
                   </div>
                   
                   {/* WhatsApp */}
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                      <span className="text-white text-xl">💬</span>
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center shadow-lg">
+                    <img 
+                      src="/whatsapp.png" 
+                      alt="Whatsapp"
+                      className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                    />
                     </div>
                     <div>
                       <p className="text-white font-medium">WhatsApp</p>
-                      <p className="text-blue-400">+94 75 932 7242</p>
+                      <a 
+                        href="https://wa.me/94763741826" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        +94 76 374 1826
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -210,84 +344,118 @@ export default function LandingPage({ onLogin }) {
                   <div className="flex space-x-4">
                     {/* GitHub */}
                     <a 
-                      href="#" 
-                      className="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
+                      href="https://github.com/MadeeshaSK/msgsend" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group w-12 h-12 rounded-lg overflow-hidden hover:scale-110 transition-all transform shadow-lg"
                     >
-                      <span className="text-white text-xl">🐱</span>
+                      <img 
+                        src="/github.png" 
+                        alt="GitHub"
+                        className="w-full h-full object-contain filter brightness-0 invert group-hover:brightness-75 transition-all"
+                      />
                     </a>
                     
                     {/* LinkedIn */}
-                    <a 
-                      href="#" 
-                      className="w-12 h-12 bg-blue-700 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors"
-                    >
-                      <span className="text-white text-xl">💼</span>
-                    </a>
-                    
-                    {/* YouTube */}
-                    <a 
-                      href="#" 
-                      className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center hover:bg-red-500 transition-colors"
-                    >
-                      <span className="text-white text-xl">📺</span>
-                    </a>
+                      <a 
+                        href="https://www.linkedin.com/in/madeesha-karunarathna/" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group w-12 h-12 rounded-lg overflow-hidden hover:scale-110 transition-all transform shadow-lg"
+                      >
+                        <img 
+                          src="/linkedin.png" 
+                          alt="LinkedIn"
+                          className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                        />
+                      </a>
                     
                     {/* Facebook */}
                     <a 
-                      href="#" 
-                      className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-500 transition-colors"
+                      href="https://www.facebook.com/madeeshasachindu.karunarathna" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group w-12 h-12 rounded-lg overflow-hidden hover:scale-110 transition-all transform shadow-lg"
                     >
-                      <span className="text-white text-xl">📘</span>
+                      <img 
+                        src="/facebook.png" 
+                        alt="Facebook"
+                        className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                      />
                     </a>
                   </div>
                 </div>
               </div>
               
               {/* Contact Form */}
-              <div className="glass p-8 rounded-2xl">
+              <div className="glass p-8 rounded-2xl" style={{
+                backdropFilter: 'blur(20px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
                 <h3 className="text-2xl font-bold text-white mb-6">Send us a Message</h3>
-                <form className="space-y-6">
+                <div className="space-y-6">
                   <div>
                     <input
                       type="text"
+                      name="name"
+                      value={contactForm.name}
+                      onChange={handleContactFormChange}
                       placeholder="Your Name"
-                      className="w-full p-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none"
+                      className="w-full p-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none transition-colors"
                     />
                   </div>
                   <div>
                     <input
                       type="email"
+                      name="email"
+                      value={contactForm.email}
+                      onChange={handleContactFormChange}
                       placeholder="Your Email"
-                      className="w-full p-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none"
+                      className="w-full p-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none transition-colors"
                     />
                   </div>
                   <div>
                     <input
                       type="text"
+                      name="subject"
+                      value={contactForm.subject}
+                      onChange={handleContactFormChange}
                       placeholder="Subject"
-                      className="w-full p-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none"
+                      className="w-full p-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none transition-colors"
                     />
                   </div>
                   <div>
                     <textarea
                       rows={5}
+                      name="message"
+                      value={contactForm.message}
+                      onChange={handleContactFormChange}
                       placeholder="Your Message"
-                      className="w-full p-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none resize-none"
+                      className="w-full p-4 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/60 focus:border-blue-400 focus:outline-none resize-none transition-colors"
                     />
                   </div>
                   <button
-                    type="submit"
-                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all"
+                    onClick={handleContactSubmit}
+                    disabled={isSubmitting}
+                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
                   >
-                    Send Message
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
                   </button>
-                </form>
+                  {submitMessage && (
+                    <div className={`p-4 rounded-lg text-center ${
+                      submitMessage.includes('successfully') 
+                        ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                        : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                    }`}>
+                      {submitMessage}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </section>
         )}
-
-        
       </main>
 
       {showAuth && (

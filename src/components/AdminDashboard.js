@@ -29,12 +29,10 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
   const [currentProfilePicture, setCurrentProfilePicture] = useState(null)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [showOtpToggleConfirm, setShowOtpToggleConfirm] = useState(false)
-  const [pendingOtpAction, setPendingOtpAction] = useState(null) // 'enable' or 'disable'
+  const [pendingOtpAction, setPendingOtpAction] = useState(null) 
   const [otpServerLoading, setOtpServerLoading] = useState(false)
-  
-  // Auto-refresh functionality
   const [autoRefresh, setAutoRefresh] = useState(true)
-  const [refreshInterval, setRefreshInterval] = useState(30) // seconds
+  const [refreshInterval, setRefreshInterval] = useState(30) 
   const [lastRefresh, setLastRefresh] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const refreshTimer = useRef(null)
@@ -54,7 +52,6 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
     }
   }, [snackbarMessage, snackbarType])
   
-  // Add this function to handle snackbar messages (around line 45)
   const showSnackbarMessage = (message, type = 'success') => {
     setSnackbarMessage(message)
     setSnackbarType(type)
@@ -104,7 +101,6 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
         setLastRefresh(new Date())
       }
       
-      // Fetch admin profile separately since it's not in dashboard data
       await fetchAdminProfile()
     } catch (error) {
       setError(error.message)
@@ -144,9 +140,9 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
     }
   }
 
+  // fetch admin profile
   const fetchAdminProfile = async () => {
     try {
-      // Use the same logic as UserDashboard - check if user has apiKey
       if (user && user.apiKey) {
         console.log('Fetching admin profile...')
         
@@ -207,7 +203,6 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
           `API Server ${pendingOtpAction === 'enable' ? 'enabled' : 'disabled'} successfully!`, 
           'success'
         )
-        // Quick refresh to update status immediately
         await quickRefresh()
       } else {
         showSnackbarMessage(`Failed to ${pendingOtpAction} API server`, 'error')
@@ -228,7 +223,6 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
   const handleLogout = () => {
     setShowLogoutConfirm(false)
     setShowSidebar(false)
-    // Clear refresh timer on logout
     if (refreshTimer.current) {
       clearInterval(refreshTimer.current)
     }
@@ -457,7 +451,7 @@ export default function AdminDashboard({ user = { name: 'Admin User' }, onLogout
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900" data-admin-dashboard="true">
       <header className="glass border-b border-white/10">
         <div className="px-6 py-4 flex justify-between items-center">
           {/* Left Section - Logo & Status */}

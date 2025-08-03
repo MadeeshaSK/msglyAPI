@@ -22,10 +22,8 @@ export default function Home() {
         if (storedSession) {
           const { user: storedUser, view: storedView } = storedSession
           
-          // Validate that the basic required fields exist
           if (storedUser.apiKey && storedUser.name && storedUser.role) {
             
-            //  Validate session with backend
             const isValid = await validateSession(storedUser)
             
             if (isValid) {
@@ -36,16 +34,13 @@ export default function Home() {
               setCurrentView('landing')
             }
           } else {
-            // Invalid stored data, clear it
             clearSession()
             setCurrentView('landing')
           }
         } else {
-          // No stored session, show landing page
           setCurrentView('landing')
         }
       } catch (error) {
-        // Clear corrupted data and go to landing
         clearSession()
         setCurrentView('landing')
       } finally {
@@ -60,10 +55,8 @@ export default function Home() {
   useEffect(() => {
     if (isInitialized) {
       if (user && currentView !== 'loading') {
-        // Store user session
         storeSession(user, currentView)
       } else if (!user && currentView === 'landing') {
-        // Clear session
         clearSession()
       }
     }
@@ -80,22 +73,20 @@ export default function Home() {
     }
   }
 
+  // Handle logout and clear session
   const handleLogout = async () => {
     try {
       
-      // Only call Firebase logout if user has firebaseUid
       if (user?.firebaseUid) {
         await logout()
       }
       
-      // Clear session storage
       clearSession()
       
       setUser(null)
       setCurrentView('landing')
       
     } catch (error) {
-      // Force logout even if Firebase logout fails
       clearSession()
       setUser(null)
       setCurrentView('landing')

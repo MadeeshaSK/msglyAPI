@@ -54,6 +54,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     return () => clearTimeout(delayedSearch)
   }, [searchTerm])
 
+  // Search user
   const handleUserSearch = async () => {
     if (!searchTerm.trim()) {
       setSearchResults([])
@@ -75,12 +76,12 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     }
   }
 
+  // Search payment
   const handlePaymentSearch = async () => {
     try {
       setPaymentLoading(true)
       
       if (!paymentSearchTerm.trim()) {
-        // Load all payments if no search term
         if (selectedUser) {
           await loadUserPayments(selectedUser.id)
         } else {
@@ -91,14 +92,12 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
 
       const searchTerm = paymentSearchTerm.trim()
       
-      // Search by payment ID in current payments
       const currentPayments = selectedUser ? userPayments : payments
       const paymentById = currentPayments.find(p => 
         p.id && p.id.toLowerCase().includes(searchTerm.toLowerCase())
       )
       
       if (paymentById) {
-        // Filter current payments by ID
         if (selectedUser) {
           setUserPayments([paymentById])
         } else {
@@ -107,7 +106,6 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
         return
       }
 
-      // Search by user ID - try to find user and get their payments
       try {
         const userResult = await homeTabService.getUser(searchTerm)
         if (userResult.success) {
@@ -122,10 +120,8 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
           return
         }
       } catch (error) {
-        // User not found by ID, continue with other searches
       }
 
-      // If no results found, show empty
       if (selectedUser) {
         setUserPayments([])
       } else {
@@ -147,6 +143,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     return () => clearTimeout(delayedPaymentSearch)
   }, [paymentSearchTerm])
 
+  // Load payments
   const loadPayments = async () => {
     try {
       setPaymentLoading(true)
@@ -162,6 +159,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     }
   }
 
+  // Load all logs
   const loadLogs = async () => {
     try {
       setLogLoading(true)
@@ -177,6 +175,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     }
   }
 
+  // Load all payments
   const loadUserPayments = async (userId) => {
     try {
       setPaymentLoading(true)
@@ -192,6 +191,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     }
   }
 
+  // Load Logs
   const loadUserLogs = async (userId) => {
     try {
       setLogLoading(true)
@@ -207,6 +207,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     }
   }
 
+  // update user
   const handleUpdateUser = async () => {
     if (!selectedUser) return
     
@@ -237,6 +238,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     }
   }
 
+  // delete user
   const handleDeleteUser = async (userId) => {
     try {
       setUserLoading(true)
@@ -261,6 +263,7 @@ export default function HomeTab({ dashboardData, onRefresh, onShowSnackbar }) {
     setShowDeleteConfirm(true)
   }
 
+  // user select
   const handleUserSelect = async (user) => {
     try {
       setUserLoading(true)

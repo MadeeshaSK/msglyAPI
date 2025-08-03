@@ -21,6 +21,7 @@ export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
     loadAnalyticsData()
   }, [analyticsTimeframe])
 
+  // Load analytics data based on selected timeframe
   const loadAnalyticsData = async () => {
     try {
       setLoading(true)
@@ -66,25 +67,23 @@ export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
     }
   }
 
-  // Add this function to handle custom date selection
+  // Custom date apply
   const handleCustomDateApply = () => {
     if (customStartDate && customEndDate) {
       setAnalyticsTimeframe(`custom_${customStartDate}_${customEndDate}`)
       setShowCustomDatePicker(false)
-      // loadAnalyticsData will be triggered by useEffect
     }
   }
 
-  // Add this function to reset custom dates
+  // Reset custom dates
   const resetCustomDates = () => {
     setCustomStartDate('')
     setCustomEndDate('')
     setShowCustomDatePicker(false)
   }
 
-
+  // Get user Analytics
   const getUserAnalytics = () => {
-    // Use current dashboard data for overall stats, analytics users for timeframe-specific data
     const totalUsers = dashboardData?.users?.length || 0
     const activeUsers = dashboardData?.users?.filter(u => u.isActive !== false).length || 0
     const inactiveUsers = totalUsers - activeUsers
@@ -151,12 +150,12 @@ export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
     }
   }
 
+  // Get request analytics
   const getRequestAnalytics = () => {
     const totalRequests = requests.length
     const successfulRequests = requests.filter(r => r.status === 'Success').length
     const failedRequests = requests.filter(r => r.status === 'Failed' || r.status === 'error').length
     
-    // Count request types - updated to include direct sms, direct email, email otp, sms otp
     const types = {
       sms_otp: requests.filter(r => {
         const type = (r.type || '').toUpperCase()
@@ -189,6 +188,7 @@ export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
     }
   }
 
+  // Get timeframe label
   const getTimeframeLabel = () => {
     if (analyticsTimeframe.startsWith('custom_')) {
       const [, startDate, endDate] = analyticsTimeframe.split('_')
@@ -498,11 +498,11 @@ export default function AnalyticsTab({ dashboardData, onShowSnackbar }) {
 
             <div className="bg-white/5 p-4 rounded-lg">
               <p className="text-white/60 text-sm mb-3">Request Types</p>
-              <div className="space-y-1.5"> {/* Slightly more space between rows */}
-                <div className="flex items-center justify-between py-1"> {/* More vertical padding */}
-                  <div className="flex items-center space-x-1.5"> {/* More horizontal spacing */}
-                    <Phone className="w-3.5 h-3.5 text-blue-400" /> {/* Slightly bigger icon */}
-                    <span className="text-white/80 text-xs leading-tight">SMS OTP</span> {/* Slightly bigger font, tighter line-height */}
+              <div className="space-y-1.5"> 
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex items-center space-x-1.5"> 
+                    <Phone className="w-3.5 h-3.5 text-blue-400" /> 
+                    <span className="text-white/80 text-xs leading-tight">SMS OTP</span> 
                   </div>
                   <span className="text-white font-medium text-xs leading-tight">{requestAnalytics.types.sms_otp}</span>
                 </div>

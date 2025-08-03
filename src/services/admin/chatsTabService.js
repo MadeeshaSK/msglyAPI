@@ -10,7 +10,7 @@ const chatsTabService = {
       data: []
     }
   },
-
+  
   async getChatMessages(chatId) {
     // Not needed with embedded Tawk.to
     return {
@@ -18,7 +18,7 @@ const chatsTabService = {
       data: []
     }
   },
-
+  
   async sendMessage(chatId, message) {
     // Not needed with embedded Tawk.to
     return {
@@ -26,7 +26,7 @@ const chatsTabService = {
       error: 'Use embedded Tawk.to dashboard for messaging'
     }
   },
-
+  
   async getChatStats() {
     // No mock data - return empty stats
     return {
